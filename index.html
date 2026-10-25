@@ -1,0 +1,583 @@
+<!doctype html>
+<html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>水走 SUI-SO | ブラウザ版</title><style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#081b27;color:#eaf7fa;font:14px system-ui,sans-serif}body{display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}header{display:flex;gap:10px;align-items:center;padding:7px 12px;background:#102c3c;flex-shrink:0}header strong{letter-spacing:.12em}header span{color:#a9c8d5;font-size:12px}button{border:1px solid #52768a;background:#224859;color:#f4fcff;border-radius:9px;padding:9px 13px;min-height:42px;font:600 14px system-ui;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}button:hover,button.held{background:#39748b}button:focus-visible{outline:2px solid #ffe1a2}button:disabled{opacity:.4}button.primary{background:#d8c38c;color:#142634;border-color:#efdcae}#view{flex:1;min-height:0;position:relative;display:flex;justify-content:center;align-items:center}canvas{max-width:100%;max-height:100%;width:100%;height:100%;object-fit:contain;outline:0;touch-action:none}#loading{position:absolute;inset:0;background:#081b27;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:25px;text-align:center;z-index:5}#loading[hidden]{display:none}#loadtext{max-width:540px;line-height:1.7;color:#b9d2da}#toolbar{display:flex;justify-content:center;align-items:center;gap:7px;flex-wrap:wrap;padding:7px;background:#102c3c}#train{display:flex;gap:7px;flex-wrap:wrap;justify-content:center}#drive{display:flex;justify-content:space-between;gap:15px;padding:6px 12px;background:#081b27}#drive .group{display:flex;gap:7px}#drive button{min-width:70px;min-height:54px;font-size:17px}#drive .throttle{min-width:110px;background:#3d786b}#hint{text-align:center;color:#9ab9c8;font-size:11px;padding:3px}#rotate{display:none;color:#ffe0a5;text-align:center;font-size:12px;padding:4px}#status{margin-left:auto;white-space:nowrap}#session{color:#d8c38c;align-self:center;font-size:12px}#course-picker{display:flex;gap:4px;align-items:center}#course-picker button{min-width:34px;padding:6px}#course-label{font-size:12px;color:#ffe1a2}#drive[hidden],#train[hidden]{display:none}@media(max-width:760px){header{padding:5px 10px}header span{display:none}#toolbar{gap:5px;padding:4px}button{padding:7px 10px;min-height:38px;font-size:12px}#drive{padding:4px 8px}#drive button{min-width:52px;min-height:48px;font-size:14px}#drive .throttle{min-width:85px}#hint{display:none}}@media(orientation:portrait) and (max-width:760px){#rotate{display:block}#view{flex:none;height:calc(100vw * .5625)}#toolbar{margin-top:auto}#drive{padding-bottom:10px}header{min-height:40px}}
+@media(max-width:400px){#drive{gap:8px}#drive .group{gap:5px}#drive button{min-width:44px;padding:7px 8px;font-size:12px}#drive .throttle{min-width:72px}}
+#volume-label{display:flex;align-items:center;gap:4px;font-size:11px;color:#b9d2da}#volume{width:70px;touch-action:pan-x;accent-color:#d8c38c}#drive .steering{justify-content:flex-start}#drive .power{justify-content:flex-end}#drive .monkey{background:#4a567e}#drive .throttle{min-width:118px}#drive{padding-bottom:max(8px,env(safe-area-inset-bottom));gap:24px}#drive button{min-height:58px;touch-action:none}
+@media(max-width:760px){#drive button{min-height:54px;min-width:54px}#drive .throttle{min-width:96px}#drive .monkey{min-width:78px}#volume{width:56px}#volume-label{font-size:10px}}
+@media(max-width:400px){#drive{gap:12px}#drive .group{gap:5px}#drive button{min-width:46px;padding:6px}#drive .throttle{min-width:78px}#drive .monkey{min-width:64px}}
+@media(orientation:landscape) and (max-height:500px){header{padding:2px 10px;font-size:12px}#toolbar{padding:2px;gap:4px}#toolbar button{min-height:30px;padding:4px 8px}#drive{padding-top:3px;padding-bottom:3px}#drive button{min-height:48px}#hint{display:none}}
+#cpu-setting{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:4px 7px}#cpu-skill{font-size:11px;color:#a9c8d5}
+#training-choices{display:flex;flex-wrap:wrap;justify-content:center;gap:7px}#training-choices button{min-width:94px;line-height:1.25}#training-choices small{display:block;margin-top:3px;font-size:10px;font-weight:400;color:#b9d2da}#training-status{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 9px;color:#d8c38c;font-size:12px}#training-status span{color:#a9c8d5;font-size:11px}#train{min-width:0;max-width:100%;align-items:center}#course-picker{flex-wrap:wrap;justify-content:center}@media(max-width:760px){#training-choices{gap:5px;width:100%}#training-choices button{flex:1;min-width:0;padding:6px 5px;font-size:11px}#training-choices small{font-size:9px}#training-status{width:100%;font-size:11px}}
+#preset-choices,#ability-setting{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:4px 7px}#preset-choices span,#ability-description{font-size:11px;color:#b9d2da}#ability-toggle[aria-pressed="true"]{background:#d8c38c;color:#142634}#result-summary{width:100%;text-align:center;font-size:12px;color:#ffe1a2;line-height:1.5}#result-summary[hidden]{display:none}#toolbar{max-height:58vh;overflow-y:auto;flex-shrink:0}#toolbar button{touch-action:pan-y}@media(orientation:landscape) and (max-height:500px){#ability-description{font-size:10px}#preset-choices span{display:none}#training-choices small{display:none}#training-status{font-size:10px}}
+#loading{justify-content:flex-start;overflow:auto;gap:12px;padding:16px}#loading h1{margin:8px 0;order:0}#launch{order:1;flex-shrink:0}#loadtext{order:2;font-size:13px;line-height:1.6}#perf-panel{position:absolute;left:8px;top:8px;z-index:4;pointer-events:none;background:#061823d9;color:#eaf7fa;padding:7px 9px;border-radius:6px;font:11px/1.45 ui-monospace,monospace;white-space:pre-line}#perf-panel[hidden],#copy-diagnostics[hidden],#save-diagnostics[hidden],#diagnostic-status[hidden]{display:none}#diagnostic-status{font-size:11px;color:#b9d2da}
+/* v35: independent horizontal/vertical pad axes; no circular normalization. */
+#drive{flex-shrink:0;align-items:center;padding:6px max(12px,env(safe-area-inset-right)) 6px max(12px,env(safe-area-inset-left));gap:24px}#drive .steering{position:relative;display:block;padding-bottom:17px}#steer-pad{position:relative;width:174px;height:104px;border:1px solid #6b98ab;border-radius:17px;background:linear-gradient(#173e50 0 60%,#35496c 60%);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}#steer-pad.held{border-color:#c4f6ff;background:linear-gradient(#22566b 0 60%,#485e85 60%)}#steer-pad.monkey-on{box-shadow:inset 0 -27px 20px -12px #8ccad077}.pad-top,.pad-bottom,.pad-center{position:absolute;left:0;width:100%;text-align:center;pointer-events:none;font-size:11px;color:#bdd8e1}.pad-top{top:6px}.pad-bottom{bottom:6px;color:#e3e4ff}.pad-center{top:42%;font-size:14px;color:#abc8d2}#pad-thumb{position:absolute;left:50%;top:50%;width:32px;height:32px;margin:-16px;border-radius:50%;border:2px solid #c8eef5;background:#b0ebf52b;pointer-events:none}#pad-state{position:absolute;bottom:0;left:0;width:100%;text-align:center;white-space:nowrap;font-size:10px;color:#b7d5df}#drive .power{align-items:center}#drive .throttle{width:138px;height:90px;border-radius:20px;background:#356f64}#drive .throttle.held{background:#58a18c;border-color:#b7ffe6}#drive .throttle small{display:block;font-size:10px;font-weight:400;margin-top:8px}#drive [aria-disabled="true"]{opacity:.45}
+@media(orientation:landscape) and (max-height:500px){#drive{padding-top:3px;padding-bottom:3px}#steer-pad{width:150px;height:82px}#drive .throttle{width:130px;height:76px}#drive .steering{padding-bottom:14px}#pad-state{font-size:9px}.pad-top,.pad-bottom{font-size:10px}}
+@media(orientation:portrait) and (max-width:760px){#steer-pad{width:min(43vw,184px);height:132px}#drive .throttle{width:min(36vw,150px);height:118px}#drive{padding-bottom:max(10px,env(safe-area-inset-bottom));gap:12px}}
+#toolbar[data-state="results"] #retry,#toolbar[data-state="results"] #menu,#toolbar[data-state="results"] #sound{min-height:44px;font-size:14px;order:-2}#toolbar[data-state="results"] #retry,#toolbar[data-state="results"] #menu{min-width:112px}#toolbar[data-state="results"] #pause,#toolbar[data-state="results"] #volume-label,#toolbar[data-state="results"] #quality{display:none}#toolbar[data-state="results"] #result-summary{max-height:36px;overflow-y:auto;order:-1;margin:0 4px}#toolbar[data-state="results"]{max-height:106px}#toolbar[data-state="results"] button{flex-shrink:0}
+
+/* v59: finger-sized independent ability controls, including short landscape. */
+#training-choices{display:grid;grid-template-columns:repeat(2,minmax(230px,1fr));gap:4px 10px;width:min(100%,680px)}
+.ability-step{display:flex;align-items:center;justify-content:center;gap:5px;min-width:0}.ability-step>span{flex:1;min-width:76px;text-align:left;font-size:13px}.ability-step output{width:22px;text-align:center;color:#ffe1a2;font-weight:700}
+#toolbar #training-choices button{min-height:44px;min-width:44px;width:44px;flex:0 0 44px;padding:0;font-size:20px;touch-action:manipulation}
+@media(max-width:500px){#training-choices{grid-template-columns:1fr}}
+/* v63: toolbar mode target stays finger-sized even when native canvas shrinks. */
+#toolbar #start-mode{min-height:44px;min-width:160px;touch-action:pan-y}
+
+/* v72: display layout is independent of the fixed render buffer. */
+#race-actions{position:fixed;z-index:8;top:max(12px,env(safe-area-inset-top));left:50%;transform:translateX(-50%);display:flex;gap:8px;align-items:center}
+#race-actions button{min-width:44px;min-height:44px;background:#102b3de8;font-size:14px}
+#fullscreen-status{position:fixed;z-index:9;left:50%;top:max(62px,calc(env(safe-area-inset-top) + 62px));transform:translateX(-50%);max-width:80vw;padding:8px 12px;border-radius:8px;background:#102b3df5;color:#ffe3a2;font-size:14px;pointer-events:none}
+#fullscreen-status:empty{display:none}
+body.race-view header,body.race-view #hint,body.race-view #rotate{display:none}
+body.race-view #view{position:absolute;inset:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);height:auto;min-height:0}
+body.race-view #toolbar{display:none}
+body.race-view #drive{position:fixed;z-index:6;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));padding:0;background:none;pointer-events:none}
+body.race-view #drive .steering,body.race-view #drive .power{pointer-events:auto}
+body.race-view #steer-pad{width:160px;height:86px;background:linear-gradient(#163b4be8 0 60%,#35496ce8 60%);border-width:2px}
+body.race-view #drive .throttle{width:138px;height:80px;background:#275d54ed;border-width:2px}
+body.race-view #drive .throttle.held{background:#438d77;border-color:#b7ffe6}
+body.race-view #drive .steering{padding-bottom:0}
+body.race-view #pad-state{display:none}
+body.race-view .pad-top,body.race-view .pad-bottom{font-size:13px}
+body.race-view.menu-open #toolbar{display:flex;position:fixed;z-index:7;left:50%;top:50%;transform:translate(-50%,-50%);width:min(580px,90vw);max-height:65vh;padding:18px;border:1px solid #52768a;border-radius:16px;box-shadow:0 0 0 100vmax #04121b70}
+body.race-view.menu-open #toolbar button{min-height:44px;font-size:14px}
+body.race-view.menu-open #drive{visibility:hidden}
+body:fullscreen{width:100vw;height:100vh;background:#081b27}
+@media(orientation:portrait){body.race-view #view{bottom:150px}body.race-view #race-actions{top:auto;bottom:115px}}
+@media(max-height:360px) and (orientation:landscape){body.race-view #steer-pad{width:150px;height:82px}body.race-view #drive .throttle{width:130px;height:76px}}
+/* V74_RESULTS_REPLAY: layout only; fixed render buffer unchanged. */
+#special-abilities{width:min(100%,680px);padding:5px 0}#special-abilities legend{font-size:12px;color:#d8c38c}.special-boat{display:flex;align-items:center;justify-content:center;gap:6px;flex-wrap:wrap;margin:3px 0}.special-boat button{min-height:44px;font-size:12px}.special-boat button[aria-pressed="true"]{background:#d8c38c;color:#142634}#special-description{display:block;font-size:11px;color:#b9d2da;line-height:1.5}#replay-return[hidden],#replay-start[hidden]{display:none}#replay-return{min-height:44px}body.replay-view header,body.replay-view #toolbar,body.replay-view #hint,body.replay-view #rotate,body.replay-view #drive{display:none!important}body.replay-view #view{position:absolute;inset:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);height:auto;min-height:0}#toolbar[data-state="results"] #result-summary{white-space:pre-line;max-height:72px}#toolbar[data-state="results"]{max-height:148px}
+
+/* v78: one existing recorder/control group stays reachable on results and replay. */
+#diagnostic-controls{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;padding:4px 8px;background:#102c3c;flex-shrink:0;max-height:132px;overflow-y:auto;min-width:0}
+#diagnostic-controls button{min-height:44px;min-width:44px;font-size:12px;padding:7px 9px;touch-action:manipulation}
+#diagnostic-controls #diagnostic-status{flex-basis:100%;text-align:center;overflow-wrap:anywhere}
+body.race-view #diagnostic-controls{display:none}
+body.race-view.menu-open #toolbar{top:calc((100% - 104px)/2);max-height:calc(100dvh - 164px)}
+body.race-view.menu-open #diagnostic-controls{max-height:104px;display:flex;position:fixed;z-index:9;bottom:env(safe-area-inset-bottom);left:env(safe-area-inset-left);right:env(safe-area-inset-right)}
+body.replay-view #diagnostic-controls{display:flex;position:fixed;z-index:9;bottom:env(safe-area-inset-bottom);left:env(safe-area-inset-left);right:env(safe-area-inset-right);height:52px;max-height:52px;align-content:center}
+body.replay-view #view{bottom:calc(env(safe-area-inset-bottom) + 52px)}
+body.replay-view #diagnostic-status{position:fixed;bottom:calc(env(safe-area-inset-bottom) + 56px);left:8px;right:8px;max-height:44px;overflow:hidden;background:#102c3cf5;border-radius:6px;padding:4px;pointer-events:none}
+@media(max-height:360px){#toolbar[data-state="results"]{max-height:100px}#diagnostic-controls{max-height:104px}}
+@media(max-width:320px){body.replay-view #diagnostic-controls{height:104px;max-height:104px}body.replay-view #view{bottom:calc(env(safe-area-inset-bottom) + 104px)}body.replay-view #diagnostic-status{bottom:calc(env(safe-area-inset-bottom) + 108px)}#diagnostic-controls{gap:4px;padding:4px}#diagnostic-controls button{font-size:11px;padding:6px}}
+
+/* v81 simple skin: the existing controls and their hit ownership are unchanged. */
+#ui-style{min-height:48px;touch-action:manipulation}#simple-speed{display:none}#simple-settings-close{display:none;min-height:48px}
+body.simple-ui.race-view #race-actions{left:auto;right:max(12px,env(safe-area-inset-right));top:max(12px,env(safe-area-inset-top));bottom:auto;transform:none;gap:6px}
+body.simple-ui #race-actions button{min-width:48px;min-height:48px}
+body.simple-ui.race-view:not(.menu-open) #fullscreen{display:none}
+body.simple-ui.race-view #race-skip{position:fixed;left:50%;top:34%;transform:translateX(-50%);width:min(380px,45vw)}body.simple-ui.race-view #race-menu{width:48px;padding:8px;font-size:24px;border-radius:14px;background:#0b2533df}
+body.simple-ui.race-view #drive{left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));align-items:flex-end}
+body.simple-ui.race-view #steer-pad{width:180px;height:112px;border:1px solid #a5c8cf;border-radius:20px;background:#133747ed}
+body.simple-ui.race-view #steer-pad:before{content:'';position:absolute;left:18px;right:18px;top:49%;border-top:1px solid #8eafb9;pointer-events:none}
+body.simple-ui.race-view #steer-pad:after{content:'';position:absolute;left:6px;right:6px;bottom:6px;height:32%;border-radius:13px;background:#445c72b0;pointer-events:none}
+body.simple-ui.race-view #steer-pad.monkey-on:after{background:#7299b9c9}
+body.simple-ui.race-view .pad-top{top:10px;color:#e8f8ff;font-weight:600;font-size:14px}
+body.simple-ui.race-view .pad-center{display:none}body.simple-ui.race-view .pad-bottom{z-index:1;font-size:13px;bottom:12px}body.simple-ui.race-view #pad-thumb{z-index:2;width:26px;height:26px;margin:-13px;background:#a7dbe3;border:0}
+body.simple-ui.race-view #drive .throttle{width:148px;height:108px;border-radius:20px;background:#235e51ef;border:1px solid #a5d6c6;padding:10px;font-size:17px}
+body.simple-ui.race-view #drive .throttle small{display:none}body.simple-ui.race-view #simple-speed{display:block;font-size:26px;line-height:1.3;margin-top:5px;font-variant-numeric:tabular-nums}#simple-speed span{font-size:11px;font-weight:400;color:#d0e8de}
+body.simple-ui.race-view #drive .throttle:after{content:'';display:block;border-top:3px solid #90bfb0;width:78%;margin:7px auto 0;pointer-events:none}
+body.simple-ui.race-view #view{bottom:env(safe-area-inset-bottom)}
+body.simple-ui.menu-open #simple-settings-close{display:inline-block}body.simple-ui #toolbar button,body.simple-ui #diagnostic-controls button{min-height:48px}
+body.simple-ui #toolbar[data-state="results"] #result-summary{display:none}
+body.simple-ui.replay-view #diagnostic-controls{height:56px;max-height:56px}body.simple-ui.replay-view #view{bottom:calc(env(safe-area-inset-bottom) + 56px)}body.simple-ui.replay-view #diagnostic-status{bottom:calc(env(safe-area-inset-bottom) + 60px)}
+body.simple-ui.race-view.menu-open #diagnostic-controls{max-height:108px}
+@media(max-width:320px){body.simple-ui.replay-view #diagnostic-controls{height:108px;max-height:108px}body.simple-ui.replay-view #view{bottom:calc(env(safe-area-inset-bottom) + 108px)}body.simple-ui.replay-view #diagnostic-status{bottom:calc(env(safe-area-inset-bottom) + 112px)}}
+body.simple-ui.race-view.menu-open #toolbar{max-height:calc(100dvh - 180px);width:min(580px,calc(100vw - 24px));padding:12px}
+@media(max-width:400px){body.simple-ui.race-view #steer-pad{width:138px;height:100px}body.simple-ui.race-view #drive .throttle{width:118px;height:100px}body.simple-ui.race-view .pad-top{font-size:12px}body.simple-ui.race-view #drive{gap:8px}body.simple-ui.race-view #simple-speed{font-size:23px}}
+@media(max-height:390px) and (orientation:landscape){body.simple-ui.race-view #steer-pad{width:160px;height:96px}body.simple-ui.race-view #drive .throttle{width:136px;height:96px}}
+body.simple-ui.race-view.prestart #drive .throttle{background:#235e5130;border-color:#a5d6c650}body.simple-ui.race-view.prestart #simple-speed{font-size:18px}
+#demo-screen{max-width:900px;width:90%;margin:auto;text-align:center;padding:20px;box-sizing:border-box}#demo-screen h1{color:#f6d98b}#demo-screen h2{font-size:20px}.demo-courses,.demo-presets{display:flex;gap:12px;justify-content:center}#demo-screen button{min-height:64px;flex:1}#demo-screen button[aria-pressed=true]{background:#f6d98b;color:#102b3d}.demo-start{display:block;width:60%;margin:30px auto;background:#f6d98b;color:#102b3d;font-size:24px}body.demo-training #toolbar,body.demo-training #view,body.demo-training header,body.demo-training footer,body.demo-training #hint,body.demo-training #race-actions,body.demo-training #diagnostic-controls{display:none!important}
+#fps-meter{position:fixed;left:12px;bottom:140px;z-index:30;background:#092735ed;border:1px solid #688896;border-radius:10px;padding:10px;max-width:360px;font-size:14px}#fps-meter output{display:block;white-space:pre-wrap}#fps-meter button{min-height:40px;font-size:14px;padding:6px;margin-top:5px}body.fps-mode #quality,body.fps-mode #diagnostic-controls{display:none!important}body.fps-mode:not(.race-view) #fps-meter{bottom:12px}
+</style></head><body>
+<div id="race-actions"><button id="replay-return" data-command="replay_return" type="button" hidden>結果へ戻る</button><button id="race-skip" type="button" hidden>進入をスキップ</button><button id="race-menu" type="button" aria-label="一時停止・メニュー" hidden>Ⅱ</button><button id="fullscreen" type="button" aria-pressed="false">全画面</button></div><output id="fullscreen-status" aria-live="polite"></output>
+<header><strong>水走 SUI-SO</strong><span>v0.87 ブラウザ版 · 3D ボートレース</span><output id="status">準備中</output></header>
+<div id="rotate">横向きにすると画面と操作ボタンが見やすくなります</div>
+<main id="view"><canvas id="canvas" width="1280" height="720" tabindex="0" aria-label="3D ボートレース画面">WebGL 2 対応ブラウザが必要です</canvas><output id="perf-panel" hidden aria-label="描画性能の計測"></output><div id="loading"><h1>水走 SUI-SO</h1><div id="loadtext">出足・回り足・伸び足・選手ターンを各0〜4で自由設定。合計制限なし。<br>3つの型で比較。伸び足2点で「伸び◯」習得。スタート◯・ツケマイ◯は艇ごとに設定。<br>特殊能力ONで最高速上限+2%。同じ育成でON/OFF比較可。<br>回り足は旋回速度保持、選手ターンはモンキー操作。<br>順位・前艇との差・残り周回をまとめて表示。<br>ゴール後は順位・ST・周回・能力発動を確認。スタート→1Mの記録リプレイと同じ設定で再挑戦。<br>場内掲示板は DEMO 参考表示です。<br>ターン出口で追走カメラへすぐ復帰。GO後は右上にミニマップ。<br>CPUは艇間を探さず、内側か外側の進路を選択。<br>CPUは各艇に得意型。初級0〜2、標準1〜3、上級2〜4。上級は伸び◯も使用。<br>左親指: 左右にハンドル、下へ引いてモンキー。<br>右親指: アクセルを押す。離すと減速→微速（スタート通過後）。<br>オリジナル合成エンジン音。初期音量35%、消音可。<br>1〜3はスロー、4〜6はダッシュ。時計0.00より前の通過はF。<br>ピットアウトは省略できます。タイミング補助ONでは大時計の針を見て1回タップ。黄 +0.30秒／緑 +0.20秒／青 +0.10秒 のスタートタイミングを選べます。<br>助走は自動。通過後は最大1.25秒加速を維持し、アクセル・ブレーキで即手動へ。<br>育成画面で手動スタートにも切替可能。<br>読み込み後、育成かフリー練習を選んでください。</div><button class="primary" id="launch">タップして読み込む</button></div></main>
+<section id="toolbar" aria-label="ゲームメニュー">
+<span id="presentation-options"><button data-command="fx_start">ST演出 ON</button><button data-command="fx_turn">1マーク演出 ON</button><button data-command="fx_finish">ゴール演出 ON</button><button data-command="fx_sound">演出音 ON</button><label>モーター <input class="audio-mix" data-mix="motor" aria-label="モーター音量" type="range" min="0" max="1" step="0.05"></label><label>効果音 <input class="audio-mix" data-mix="sfx" aria-label="効果音音量" type="range" min="0" max="1" step="0.05"></label><label>歓声 <input class="audio-mix" data-mix="crowd" aria-label="歓声音量" type="range" min="0" max="1" step="0.05"></label></span><button id="ui-style" type="button" aria-pressed="true">表示 シンプル</button><button id="simple-settings-close" type="button">メニューを閉じる</button>
+<div id="train"><div id="preset-choices" aria-label="編集できる能力プリセット。特殊能力OFFで比較"><button data-command="preset0">出足型</button><button data-command="preset1">回り足型</button><button data-command="preset2">伸び足型</button><span>選択後も自由に調整</span></div><div id="ability-setting"><button data-command="ability" id="ability-toggle" disabled aria-pressed="false">伸び◯ 未習得</button><output id="ability-description">試作: 伸び足2点で習得 / 最高速上限 +2%</output></div><fieldset id="special-abilities"><legend>特殊能力 · 艇ごとに設定</legend><div class="special-boat"><span id="special-boat-label-0">1号艇</span><button data-command="ability_start_0" id="ability-start-0" aria-pressed="false">スタート◯ OFF</button><button data-command="ability_tsukemai_0" id="ability-tsukemai-0" aria-pressed="false">ツケマイ◯ OFF</button></div><div class="special-boat"><span id="special-boat-label-1">2号艇</span><button data-command="ability_start_1" id="ability-start-1" aria-pressed="false">スタート◯ OFF</button><button data-command="ability_tsukemai_1" id="ability-tsukemai-1" aria-pressed="false">ツケマイ◯ OFF</button></div><div class="special-boat"><span id="special-boat-label-2">3号艇</span><button data-command="ability_start_2" id="ability-start-2" aria-pressed="false">スタート◯ OFF</button><button data-command="ability_tsukemai_2" id="ability-tsukemai-2" aria-pressed="false">ツケマイ◯ OFF</button></div><div class="special-boat"><span id="special-boat-label-3">4号艇</span><button data-command="ability_start_3" id="ability-start-3" aria-pressed="false">スタート◯ OFF</button><button data-command="ability_tsukemai_3" id="ability-tsukemai-3" aria-pressed="false">ツケマイ◯ OFF</button></div><div class="special-boat"><span id="special-boat-label-4">5号艇</span><button data-command="ability_start_4" id="ability-start-4" aria-pressed="false">スタート◯ OFF</button><button data-command="ability_tsukemai_4" id="ability-tsukemai-4" aria-pressed="false">ツケマイ◯ OFF</button></div><div class="special-boat"><span id="special-boat-label-5">6号艇</span><button data-command="ability_start_5" id="ability-start-5" aria-pressed="false">スタート◯ OFF</button><button data-command="ability_tsukemai_5" id="ability-tsukemai-5" aria-pressed="false">ツケマイ◯ OFF</button></div><output id="special-description">スタート◯: 正常スタート後2秒、最高速上限+10%。ツケマイ◯: 旋回中に全速で前艇を追う条件で上限+10%。各艇で独立設定・初期OFF。</output></fieldset><div id="training-choices" aria-label="4項目を各0から4へ自由設定"><div class="ability-step"><span>出足<small>加速</small></span><button data-command="untrain0" aria-label="出足を1下げる">−</button><output id="training-value-0" aria-label="出足の設定値">0</output><button data-command="train0" aria-label="出足を1上げる">＋</button></div><div class="ability-step"><span>回り足<small>旋回保持</small></span><button data-command="untrain1" aria-label="回り足を1下げる">−</button><output id="training-value-1" aria-label="回り足の設定値">0</output><button data-command="train1" aria-label="回り足を1上げる">＋</button></div><div class="ability-step"><span>伸び足<small>最高速</small></span><button data-command="untrain2" aria-label="伸び足を1下げる">−</button><output id="training-value-2" aria-label="伸び足の設定値">0</output><button data-command="train2" aria-label="伸び足を1上げる">＋</button></div><div class="ability-step"><span>選手ターン<small>モンキー</small></span><button data-command="untrain3" aria-label="選手ターンを1下げる">−</button><output id="training-value-3" aria-label="選手ターンの設定値">0</output><button data-command="train3" aria-label="選手ターンを1上げる">＋</button></div></div><div id="cpu-setting"><button data-command="difficulty" id="difficulty" title="CPUの判断・エンジン・選手能力を切り替え">CPU 標準</button><output id="cpu-skill">各能力1〜3 / 艇ごとに得意型</output></div><div id="training-status" aria-live="polite"><output id="session" title="エンジン育成: 出足 / 回り足 / 伸び足">自由設定 (0 / 0 / 0)</output><output id="pilot-session">選手ターン 0</output><span>各0〜4・合計制限なし</span></div><button data-command="reset">全て0へ</button><button data-command="assist_mode" id="start-mode" aria-pressed="true" title="時計補助と手動スタートを切り替え">時計補助 ON</button><button class="primary" data-command="start">レース開始</button><button data-command="practice">フリー練習</button><span id="course-picker" aria-label="固定進入コース"><button data-command="course1" aria-label="1コース スロー">1</button><button data-command="course2" aria-label="2コース スロー">2</button><button data-command="course3" aria-label="3コース スロー">3</button><button data-command="course4" aria-label="4コース ダッシュ">4</button><button data-command="course5" aria-label="5コース ダッシュ">5</button><button data-command="course6" aria-label="6コース ダッシュ">6</button><output id="course-label">1コース SLOW</output></span></div>
+<button id="replay-start" data-command="replay" hidden>スタート→1Mをリプレイ</button><output id="result-summary" hidden aria-live="polite"></output>
+<button data-command="skip" id="skip" hidden>ピットアウトをスキップ</button><button data-command="pause" id="pause">一時停止</button><button data-command="retry" id="retry">リトライ</button><button data-command="menu" id="menu">育成へ</button><button data-command="sound" id="sound">音 ON</button><label id="volume-label">音量 <input id="volume" aria-label="全体音量" type="range" min="0" max="100" value="35" step="5"></label><button id="quality" type="button" aria-label="描画品質を切り替え" aria-pressed="false" title="軽量は896×504、動的な影を省略し、細波と飛沫を簡略化。標準は1280×720。操縦と物理は同じです。">描画 標準</button></section>
+<section id="diagnostic-controls" aria-label="この端末の計測と診断"><button id="performance" type="button" aria-pressed="false" title="FPSとフレーム間隔をこの端末で表示。計測値は送信しません。">計測 OFF</button><button id="copy-diagnostics" type="button" hidden title="計測中に記録したフレーム間隔とゲーム内の場面をコピーします。自動送信はしません。">診断をコピー</button><button id="save-diagnostics" type="button" hidden title="この端末に診断JSONを保存します。自動送信はしません。">診断を保存</button><output id="diagnostic-status" hidden aria-live="polite"></output></section>
+<section id="drive" aria-label="2本の親指で操作"><div class="group steering"><div id="steer-pad" role="group" aria-label="左親指: 左右で旋回、下へ引くとモンキー、上へ戻すと解除"><span class="pad-top">◀ ハンドル ▶</span><span class="pad-center">●</span><span class="pad-bottom">↓ モンキー</span><span id="pad-thumb" aria-hidden="true"></span></div><output id="pad-state">直進 / モンキー OFF</output></div><div class="group power"><button data-control="4" class="throttle" aria-label="右親指: 押してアクセル、離すと減速して微速。スタート待機中は微速なし">アクセル<output id="simple-speed" aria-label="現在の速度">0 <span>km/h</span></output><small>押す 加速 · 離す 微速</small></button></div></section>
+<div id="hint">W / ↑ アクセル · A D / ← → ハンドル · Space / Shift 重心移動 · S / ↓ 停止 · Esc 一時停止 · R リトライ · T 育成 · K ピットスキップ · F4 スタート方式 · Space タイミング決定</div>
+<section id="demo-screen" hidden aria-label="ミニレース体験">
+<h1>ミニレース体験</h1><h2>コースを選ぶ</h2><div class="demo-courses"><button data-command="course1" aria-pressed="true">1コース</button><button data-command="course2" aria-pressed="false">2コース</button><button data-command="course3" aria-pressed="false">3コース</button><button data-command="course4" aria-pressed="false">4コース</button><button data-command="course5" aria-pressed="false">5コース</button><button data-command="course6" aria-pressed="false">6コース</button></div><h2>型を選ぶ</h2><div class="demo-presets"><button data-command="preset0">出足型</button><button data-command="preset1">回り足型</button><button data-command="preset2">伸び足型</button></div><button class="demo-start" data-command="start">スタート</button></section>
+<aside id="fps-meter" hidden aria-label="実機FPS計測"><output id="fps-live">FPS 計測待ち</output><button id="fps-light" data-command="fps_light" aria-pressed="false">軽量化 OFF</button><button id="fps-copy" hidden>計測結果をコピー</button><output id="fps-copy-status" role="status"></output></aside>
+<script src="index.js"></script><script>
+'use strict';
+const canvas=document.getElementById('canvas'), commands=[], pointers=new Map(), keys=new Set(), captures=new Map();
+const steeringPad=document.getElementById('steer-pad'), padThumb=document.getElementById('pad-thumb'), padState=document.getElementById('pad-state');
+let padPointer=null, padSteer=0, padMonkey=false;
+const keyBits={KeyA:1,ArrowLeft:1,KeyD:2,ArrowRight:2,KeyW:4,ArrowUp:4,KeyS:8,ArrowDown:8,Space:16,ShiftLeft:16,ShiftRight:16};
+let simpleUi=true, simpleMenuOpen=false, simpleMenuClosing=false, simpleMenuPending=false, simpleMenuSequence=0;
+try{const stored=localStorage.getItem('suisoUiStyle');if(stored==='classic')simpleUi=false;}catch(_error){}
+let replayActive=false, replayAvailable=false;
+let ready=false, active=false, mode='training', wasPaused=false, skipPending=false, resultsReady=true, assistActive=false, assistSelecting=false, assistTapPending=false;
+function fittedCanvasSize(w,h){const k=Math.max(0,Math.min(w/1280,h/720));return {width:Math.floor(1280*k),height:Math.floor(720*k)}}
+// Avoid rebuilding unchanged DOM text/attributes at each 10Hz status tick.
+// Compare the live property so user-event updates cannot leave stale cached state.
+function setUiValue(element,key,value){if(element[key]!==value)element[key]=value}
+function setUiAttribute(element,key,value){value=String(value);if(element.getAttribute?.(key)!==value)element.setAttribute(key,value)}
+// CPU difficulty changes its shared engine/rider profile; player training is independent.
+function updateCpuDifficultyStatus(s){const level=s.cpu_difficulty??1;const label='CPU '+['初級','標準','上級'][level];const detail=['各能力0〜2 / 艇ごとに得意型','各能力1〜3 / 艇ごとに得意型','各能力2〜4 / 得意型＋伸び◯'][level];const button=document.getElementById('difficulty');setUiValue(button,'textContent',label);setUiAttribute(button,'aria-label',`${label}、${detail}`);const output=document.getElementById('cpu-skill');if(output)setUiValue(output,'textContent',detail);}
+function updateTrainingControls(s){const values=[...(s.training||[0,0,0]),s.pilot_turn_level||0];values.forEach((value,i)=>{setUiValue(document.getElementById('training-value-'+i),'textContent',String(value));setUiValue(document.querySelector('[data-command="train'+i+'"]'),'disabled',value>=4);setUiValue(document.querySelector('[data-command="untrain'+i+'"]'),'disabled',value<=0)})}
+function updatePilotTrainingStatus(s){const output=document.getElementById('pilot-session');if(output)setUiValue(output,'textContent',`選手ターン ${s.pilot_turn_level??0}`);}
+function updateAbilityStatus(s){const a=s.ability||{};const button=document.getElementById('ability-toggle');if(button){setUiValue(button,'disabled',!a.earned);setUiValue(button,'textContent',a.earned?`伸び◯ ${a.enabled?'ON':'OFF'}（切替）`:'伸び◯ 未習得');setUiAttribute(button,'aria-pressed',String(!!a.enabled))}const description=document.getElementById('ability-description');if(description)setUiValue(description,'textContent',Number.isFinite(a.effective_max_speed)?`試作: 伸び足2点 / 上限+2% · 基礎 ${(a.base_max_speed*2.65).toFixed(1)} → ${(a.effective_max_speed*2.65).toFixed(1)} km/h`:'試作: 伸び足2点で習得 / 最高速上限 +2%');const result=document.getElementById('result-summary');if(result){setUiValue(result,'hidden',replayActive||s.state!=='results'||Number(s.finish_elapsed??9)<1.8);const t=s.telemetry||{},laps=t.lap_times||[];setUiValue(result,'textContent',`${s.finish_snapshot?.rank?`${s.finish_snapshot.rank}位 · ${Number(s.finish_snapshot.time).toFixed(2)}秒 / `:''}ST +${Number(s.start_time||0).toFixed(3)}秒 / LAP ${[0,1,2].map(i=>Number.isFinite(laps[i])?laps[i].toFixed(2):'—').join(' / ')}秒 / ターン最低（待機・接触等含む） ${Number.isFinite(t.turn_min_speed)?(t.turn_min_speed*2.65).toFixed(1)+' km/h':'未計測'} / 伸び◯ ${a.enabled?'ON':'OFF'}\n${resultBoatSummary(s)}${specialEventSummary(s)}`);}}
+function displayBoatNumber(s,i){const c=Number.isInteger(s.player_course)&&s.player_course>=1&&s.player_course<=6?s.player_course:1;return i===0?c:i===c-1?1:i+1}
+function updateSpecialAbilities(s){const special=s.special_abilities||{};for(let i=0;i<6;i++){const number=displayBoatNumber(s,i);setUiValue(document.getElementById('special-boat-label-'+i),'textContent',number+'号艇');for(const [id,label] of [['start','スタート◯'],['tsukemai','ツケマイ◯']]){const b=document.getElementById('ability-'+id+'-'+i);if(!b)continue;const enabled=!!special[id]?.[i];setUiValue(b,'textContent',label+' '+(enabled?'ON':'OFF'));setUiValue(b,'disabled',s.state!=='training');setUiAttribute(b,'aria-pressed',String(enabled));setUiAttribute(b,'aria-label',`${number}号艇 ${label} ${enabled?'ON':'OFF'}`)}}}
+function resultBoatSummary(s){const rows=Array.isArray(s.result_rows)?s.result_rows:[];return rows.filter(r=>Number.isInteger(r.id)&&r.id>=0&&r.id<6).map(r=>{const st=Number.isFinite(r.start_time)?(r.start_time>=0?'+':'')+r.start_time.toFixed(3):'—';const laps=Array.isArray(r.lap_times)?r.lap_times:[];return `${r.rank>0?r.rank+'位':r.status==='flying'?'F':r.status==='dnf'?'DNF':'走行中'} ${displayBoatNumber(s,r.id)}号艇 · ST ${st} · LAP ${[0,1,2].map(i=>Number.isFinite(laps[i])?laps[i].toFixed(2):'—').join(' / ')}秒`}).join('\n')+(rows.length?'\n':'')}
+function specialEventSummary(s){const events=Array.isArray(s.special_abilities?.events)?s.special_abilities.events:[];const labels={start_o:"スタート◯",tsukemai_o:"ツケマイ◯"};const counts=Array.from({length:6},()=>({start_o:0,tsukemai_o:0}));for(const e of events){const i=Number(e.boat);if(Number.isInteger(i)&&i>=0&&i<6&&Object.prototype.hasOwnProperty.call(labels,e.id))counts[i][e.id]++}return "能力発動 "+counts.map((c,i)=>`${displayBoatNumber(s,i)}号艇: ${Object.entries(labels).map(([id,name])=>name+" "+c[id]+"回").join(" / ")}`).join(" · ")+(events.length?"\n"+events.filter(e=>Number.isInteger(Number(e.boat))&&Number(e.boat)>=0&&Number(e.boat)<6&&labels[e.id]&&Number.isFinite(e.time)).map(e=>`${displayBoatNumber(s,Number(e.boat))}号艇 ${labels[e.id]} ${Number(e.time).toFixed(2)}秒`).join(" · "):"")}
+function updateReplayControls(s){const start=document.getElementById('replay-start'),back=document.getElementById('replay-return');if(start){setUiValue(start,'hidden',s.state!=='results'||replayActive);setUiValue(start,'disabled',!resultsReady||!replayAvailable);setUiValue(start,'textContent',replayAvailable?'スタート→1M リプレイ':(s.replay?.unavailable_reason?'リプレイなし · '+String(s.replay.unavailable_reason).slice(0,48):'リプレイ記録なし'))}if(back)setUiValue(back,'hidden',!replayActive);if(replayActive){setUiValue(document.getElementById('result-summary'),'hidden',true);setUiValue(document.getElementById('retry'),'disabled',true);const menu=document.getElementById('menu');if(menu)setUiValue(menu,'disabled',true)}}
+function updateStartAssistStatus(s){const button=document.getElementById('start-mode');if(!button)return;const enabled=s.start_assist?.enabled??true;setUiValue(button,'disabled',s.state!=='training');setUiValue(button,'textContent',enabled?'時計補助 ON':'スタート 手動');setUiAttribute(button,'aria-pressed',String(enabled));setUiAttribute(button,'aria-label',enabled?'時計補助ON、タップして手動へ':'手動スタート、タップして時計補助ONへ');}
+function paintPad(x=0,y=0){const rect=steeringPad?steeringPad.getBoundingClientRect():{width:174,height:104};if(padThumb)padThumb.style.transform=`translate(${x*Math.min(54,rect.width/2-18)}px,${y*Math.min(28,rect.height/2-18)}px)`;if(padState)padState.textContent=`${padSteer<0?'左旋回':padSteer>0?'右旋回':'直進'} / モンキー ${padMonkey?'ON':'OFF'}`;if(steeringPad){steeringPad.classList[padMonkey?'add':'remove']('monkey-on')}}
+function capture(element,id){element.setPointerCapture(id);captures.set(id,element)}
+function releaseCapture(id){const element=captures.get(id);captures.delete(id);if(element&&typeof element.hasPointerCapture==='function'&&element.hasPointerCapture(id))element.releasePointerCapture(id)}
+function throttleEnabled(){return !simpleMenuOpen&&!replayActive&&ready&&!wasPaused&&(active||(assistActive&&['approach','racing'].includes(mode)))}
+function clearDirectional(){for(const [id,bits] of [...pointers]){if(bits&12)pointers.set(id,bits&12);else{pointers.delete(id);releaseCapture(id)}}for(const code of [...keys])if(!(keyBits[code]&12))keys.delete(code);padPointer=null;padSteer=0;padMonkey=false;if(steeringPad)steeringPad.classList.remove('held');paintPad()}
+function controlMask(){if(simpleUi&&simpleMenuOpen)return 0;if(!throttleEnabled())return 0;let mask=0;for(const v of pointers.values())mask|=v;for(const k of keys)mask|=keyBits[k]||0;return assistActive?mask&12:mask}
+function clear(){cameraSwipe.clear();pointers.clear();keys.clear();padPointer=null;padSteer=0;padMonkey=false;for(const id of [...captures.keys()])releaseCapture(id);document.querySelectorAll('.held').forEach(e=>e.classList.remove('held'));paintPad()}
+// Three-state steering and momentary lean have separate Schmitt thresholds.
+function padAxis(value,previous){if(value<=-.28)return -1;if(value>=.28)return 1;if(previous<0&&value<-.18)return -1;if(previous>0&&value>.18)return 1;return 0}
+function movePad(event){if(event.pointerId!==padPointer||!active)return;const rect=steeringPad.getBoundingClientRect();const x=Math.max(-1,Math.min(1,(event.clientX-rect.left-rect.width/2)/(rect.width/2)));const y=Math.max(-1,Math.min(1,(event.clientY-rect.top-rect.height/2)/(rect.height/2)));padSteer=padAxis(x,padSteer);padMonkey=padMonkey?y>.18:y>=.30;pointers.set(padPointer,(padSteer<0?1:padSteer>0?2:0)|(padMonkey?16:0));paintPad(x,y)}
+if(steeringPad){steeringPad.addEventListener('pointerdown',event=>{event.preventDefault();if(!active||padPointer!==null)return;capture(steeringPad,event.pointerId);padPointer=event.pointerId;steeringPad.classList.add('held');movePad(event)});steeringPad.addEventListener('pointermove',event=>{if(event.pointerId===padPointer){event.preventDefault();movePad(event)}});const endPad=event=>{if(event.pointerId!==padPointer)return;const id=padPointer;padPointer=null;pointers.delete(id);padSteer=0;padMonkey=false;steeringPad.classList.remove('held');paintPad();releaseCapture(id)};for(const name of ['pointerup','pointercancel','lostpointercapture'])steeringPad.addEventListener(name,endPad)}
+function enqueue(command){if(replayActive&&command!=='replay_return')return;if(command.startsWith('ability_')&&mode!=='training')return;if(command==='replay'&&(mode!=='results'||!resultsReady||!replayAvailable))return;if(command==='replay_return'&&!replayActive)return;if(command==='assist_mode'&&mode!=='training')return;if(command.startsWith('assist_tap')){if(simpleMenuOpen||!ready||wasPaused||!assistSelecting||assistTapPending)return;assistTapPending=true;}if(mode==='results'&&!resultsReady&&['start','retry','menu'].includes(command))return;if(command==='skip'){if(!ready||wasPaused||!['pitout','round_mark','formation'].includes(mode)||skipPending)return;skipPending=true;document.getElementById('skip').disabled=true}if(command.startsWith('assist_tap'))clearDirectional();else clear();if(ready){commands.push(command);canvas.focus({preventScroll:true})}}
+// v77: exclusive canvas touch owner, outside driving controls and painted HUD.
+// yaw is signed tenths of a degree. Packed above the existing five input bits,
+// so the engine uses its existing one input bridge call, not another per tick.
+function createCameraSwipe(surface, simpleMode = () => false) {
+ let pointer=null, origin=null, yaw=0, dragging=false, enabled=false;
+ const zones=[[16,16,386,304],[1000,16,264,435],[527,642,226,73],[471,528,341,55],[458,237,364,60],[16,530,324,174]];
+ const simpleZones=[[44,28,292,69],[744,28,316,250],[44,112,340,52],[44,172,380,52],[420,112,440,52]];
+ const contains=(r,x,y)=>x>=r[0]&&y>=r[1]&&x<r[0]+r[2]&&y<r[1]+r[3];
+ function point(event){const r=surface.getBoundingClientRect(),w=Math.min(r.width,r.height*16/9),h=w*9/16;return w>0&&h>0?{x:(event.clientX-r.left-(r.width-w)/2)/w*1280,y:(event.clientY-r.top-(r.height-h)/2)/h*720}:null}
+ function safe(p){return p&&contains([24,24,1232,672],p.x,p.y)&&!zones.some(r=>contains(r,p.x,p.y))&&(!simpleMode()||!simpleZones.some(r=>contains(r,p.x,p.y)))}
+ function clear(){const id=pointer;pointer=null;origin=null;yaw=0;dragging=false;if(id!==null&&surface.hasPointerCapture?.(id)){try{surface.releasePointerCapture(id)}catch(_error){}}}
+ function down(e){if(!enabled||pointer!==null||!['touch','pen'].includes(e.pointerType)||e.target!==surface)return;const p=point(e);if(!safe(p))return;try{surface.setPointerCapture(e.pointerId)}catch(_error){return}pointer=e.pointerId;origin=p;yaw=0;dragging=false;e.preventDefault()}
+ function move(e){if(e.pointerId!==pointer)return;if(!enabled){clear();return}const p=point(e);if(!p){clear();return}const dx=p.x-origin.x,dy=p.y-origin.y;if(!dragging){if(Math.abs(dy)>12&&Math.abs(dy)>Math.abs(dx)*1.2){clear();return}if(Math.abs(dx)<12)return;dragging=true}yaw=Math.max(-900,Math.min(900,Math.round(-dx/(1280*.35)*900)));e.preventDefault()}
+ function end(e){if(e.pointerId!==pointer)return;clear()}
+ surface.addEventListener?.('pointerdown',down,{passive:false});surface.addEventListener?.('pointermove',move,{passive:false});
+ for(const name of ['pointerup','pointercancel','lostpointercapture'])surface.addEventListener?.(name,end);
+ return {clear,setEnabled(value){enabled=!!value;if(!enabled)clear()},packed(){return pointer===null?0:((yaw&2047)<<5)|(1<<16)},safe,point};
+}
+// Shared logical lower-half target. HTML controls never forward their presses.
+function createAssistTap(surface,state,commit){
+ const inside=(r,x,y)=>x>=r[0]&&y>=r[1]&&x<r[0]+r[2]&&y<r[1]+r[3];
+ function down(e){
+  const s=state();if(!s.selecting||s.paused||s.menu||s.replay||e.target!==surface||e.button>0)return;
+  const r=surface.getBoundingClientRect();if(!r.width||!r.height)return;
+  const x=(e.clientX-r.left)*1280/r.width,y=(e.clientY-r.top)*720/r.height;
+  if(!inside([128,360,1024,340],x,y)||[[0,510,310,210],[1028,530,252,190]].some(a=>inside(a,x,y)))return;
+  e.preventDefault();commit('assist_tap:'+x.toFixed(2)+':'+y.toFixed(2));
+ }
+ surface.addEventListener('pointerdown',down,{passive:false});return {down};
+}
+let demoGuideCard=false;
+canvas.addEventListener('pointerdown',e=>{
+ if(!demoGuideCard||simpleMenuOpen||wasPaused||replayActive||e.target!==canvas)return;
+ const r=canvas.getBoundingClientRect(),x=(e.clientX-r.left)*1280/r.width,y=(e.clientY-r.top)*720/r.height;
+ if(x>=352&&x<912&&y>=34&&y<184){e.preventDefault();enqueue('demo_guide_next')}
+},{passive:false});
+const assistTap=createAssistTap(canvas,()=>({selecting:assistSelecting,paused:wasPaused,menu:simpleMenuOpen,replay:replayActive}),enqueue);
+const cameraSwipe=createCameraSwipe(canvas,()=>simpleUi);
+
+window.suiso={replayTransition(value){cameraSwipe.setEnabled(false);clear();commands.length=0;replayActive=!!value;active=false;assistTapPending=false;},releaseStartAssist(){clearDirectional();assistActive=false;assistSelecting=false;assistTapPending=false;active=!wasPaused&&['practice','racing','approach'].includes(mode);return controlMask()},mask(){return controlMask()},viewMask(){return controlMask()|cameraSwipe.packed()},takeCommand(){return commands.shift()||''},update(s){demoGuideCard=!!s.demo_guide?.card;cameraSwipe.setEnabled(s.camera_view_allowed===true&&!s.paused&&!s.replay?.active&&["racing","practice"].includes(s.state));const nextReplay=!!s.replay?.active;if(nextReplay!==replayActive){clear();commands.length=0;}replayActive=nextReplay;replayAvailable=!!s.replay?.available;const diagnosticStatusStart=performanceOn?diagnosticNow():null;const nextAssistActive=!!s.start_assist?.active;if(assistActive&&!nextAssistActive)clearDirectional();assistActive=nextAssistActive;assistSelecting=!!s.start_assist?.selecting;if(!assistSelecting||s.paused)assistTapPending=false;if((mode!==s.state&&['training','results','fail','pitout'].includes(s.state))||wasPaused!==s.paused)clear();if(s.state!==mode&&s.state==='pitout')skipPending=false;mode=s.state;wasPaused=s.paused;ready=true;setUiAttribute(document.getElementById('toolbar'),'data-state',s.state);resultsReady=s.state!=='results'||Number(s.finish_elapsed??9)>=2.2;const canSkip=['pitout','round_mark','formation'].includes(s.state);if(!canSkip||s.paused)skipPending=false;setUiValue(document.getElementById('skip'),'hidden',!canSkip);setUiValue(document.getElementById('skip'),'disabled',s.paused||skipPending);active=!replayActive&&!s.paused&&!simpleMenuOpen&&!assistActive&&['practice','racing','approach'].includes(s.state);if(!throttleEnabled())clear();if(steeringPad)setUiAttribute(steeringPad,'aria-disabled',String(!active));for(const control of document.querySelectorAll('[data-control]'))setUiAttribute(control,'aria-disabled',String(!(Number(control.dataset.control)&12?throttleEnabled():active)));setUiValue(document.getElementById('status'),'textContent',replayActive?'スタート→1M リプレイ':s.paused?'一時停止':s.state==='training'?'育成':s.state==='results'?`${s.finish_snapshot?.rank||''}位 · ${s.finish_complete?'着順確定':'ゴール'}`:s.state==='fail'?'F・再挑戦':s.state==='pitout'?'ピットアウト':s.state==='round_mark'?'2マークを回航':s.state==='formation'?'固定コースへ進入':s.state==='approach'?(assistSelecting?'針が色のゾーンに来たらタップ':assistActive?`自動助走 · ${Number(s.countdown||0).toFixed(1)} s`:`スタートまで ${Number(s.countdown||0).toFixed(1)} s`):s.state==='racing'&&Number(s.start_assist?.handoff_remaining)>0?'加速を維持中 · アクセルで操作開始':s.state==='racing'&&s.race_readout?`${s.race_readout.rank}位 · 残り${s.race_readout.remaining_laps}周 · ${s.race_readout.gap_text}`:`${s.speed.toFixed(1)} km/h · ${s.time.toFixed(1)} s`);setUiValue(document.getElementById('train'),'hidden',s.state!=='training');setUiValue(document.getElementById('drive'),'hidden',['training','results','fail'].includes(s.state));for(const id of ['pause','retry'])setUiValue(document.getElementById(id),'disabled',s.state==='training'||(id==='pause'&&['results','fail'].includes(s.state)));setUiValue(document.getElementById('retry'),'disabled',document.getElementById('retry').disabled||!resultsReady);document.querySelectorAll('[data-command]').forEach(b=>{if(b.dataset.command==='menu')setUiValue(b,'disabled',!resultsReady)});setUiValue(document.getElementById('pause'),'textContent',s.paused?'再開':'一時停止');setUiValue(document.getElementById('session'),'textContent',`自由設定 (${s.training.join(' / ')})`);updatePilotTrainingStatus(s);updateAbilityStatus(s);updateSpecialAbilities(s);updateReplayControls(s);updateStartAssistStatus(s);updateTrainingControls(s);setUiValue(document.getElementById('sound'),'textContent',s.muted?'音 OFF':'音 ON');setUiAttribute(document.getElementById('sound'),'aria-pressed',String(s.muted));updateCpuDifficultyStatus(s);setUiValue(document.getElementById('course-label'),'textContent',`${s.player_course||1}コース ${s.start_style||'SLOW'}`);updateSimpleUiStatus(s);updateFrameDiagnosticContext(s);renderPerformance(s.metrics);if(diagnosticStatusStart!==null)frameDiagnostics.recordStatusCost(diagnosticNow()-diagnosticStatusStart);}};
+// V81_SIMPLE_UI: one local preference, same control nodes, browser-owned menu.
+function paintSimpleUi(){
+ const body=document.body;if(body?.classList){body.classList[simpleUi?'add':'remove']('simple-ui');const menuShown=simpleUi?simpleMenuOpen:(simpleMenuOpen||(wasPaused&&['pitout','round_mark','formation','approach','racing','practice'].includes(mode)));body.classList[menuShown?'add':'remove']('menu-open');}
+ const button=document.getElementById('ui-style');if(button){setUiValue(button,'textContent',simpleUi?'表示 シンプル':'表示 従来');setUiAttribute(button,'aria-pressed',String(simpleUi));setUiAttribute(button,'aria-label',simpleUi?'シンプル表示、切り替えて従来表示':'従来表示、切り替えてシンプル表示');}
+}
+function setSimpleMenu(open){
+ if(!simpleUi||!['pitout','round_mark','formation','approach','racing','practice'].includes(mode))return;
+ if(simpleMenuOpen===open)return;
+ clear();cameraSwipe.setEnabled(false);simpleMenuOpen=open;simpleMenuClosing=!open;
+ simpleMenuSequence=simpleMenuSequence%2147483646+1;simpleMenuPending=true;
+ if(open)active=false;
+ enqueue((open?'ui_pause:':'ui_resume:')+simpleMenuSequence);
+ paintSimpleUi();
+}
+function updateSimpleUiStatus(s){
+ document.body.classList.toggle('prestart',!s.start_crossed);
+ const racing=['pitout','round_mark','formation','approach','racing','practice'].includes(s.state);
+ if(!racing||s.replay?.active){simpleMenuOpen=false;simpleMenuClosing=false;simpleMenuPending=false;}
+ else if(simpleUi||simpleMenuPending||simpleMenuOpen){
+  if(simpleMenuPending&&s.ui_menu_sequence===simpleMenuSequence)simpleMenuPending=false;
+  if(!simpleMenuPending&&!s.paused){simpleMenuOpen=false;simpleMenuClosing=false;}
+  else if(s.paused&&!simpleMenuClosing)simpleMenuOpen=true;
+ }
+ if(simpleMenuOpen){active=false;clear();cameraSwipe.setEnabled(false);}
+ const speed=document.getElementById('simple-speed');if(speed){const value=Number.isFinite(s.speed)?Math.max(0,Math.round(s.speed)):0;const text=String(value)+' km/h';setUiValue(speed,'textContent',text);}
+ paintSimpleUi();
+}
+window.suiso.simpleUi=()=>simpleUi;
+window.suiso.pauseRect=()=>{
+ const button=document.getElementById('race-menu'),canvas=document.getElementById('canvas');
+ if(!button||button.hidden||!canvas)return [];
+ const b=button.getBoundingClientRect(),c=canvas.getBoundingClientRect();
+ if(c.width<=0||c.height<=0)return [];
+ return [(b.left-c.left)*1280/c.width,(b.top-c.top)*720/c.height,b.width*1280/c.width,b.height*720/c.height];
+};
+window.suiso.simpleMenu=()=>simpleMenuOpen;
+window.suiso.setSimpleMenu=setSimpleMenu;
+document.getElementById('ui-style')?.addEventListener('click',()=>{clear();cameraSwipe.setEnabled(false);const menuWasOpen=simpleMenuOpen||(wasPaused&&['pitout','round_mark','formation','approach','racing','practice'].includes(mode));simpleUi=!simpleUi;simpleMenuOpen=menuWasOpen;simpleMenuClosing=false;try{localStorage.setItem('suisoUiStyle',simpleUi?'simple':'classic')}catch(_error){}paintSimpleUi();});
+document.getElementById('simple-settings-close')?.addEventListener('click',()=>setSimpleMenu(false));
+paintSimpleUi();
+// V81_SIMPLE_UI_END
+for(const b of document.querySelectorAll('[data-control]')){b.addEventListener('pointerdown',e=>{e.preventDefault();if(!(Number(b.dataset.control)&12?throttleEnabled():active))return;capture(b,e.pointerId);pointers.set(e.pointerId,+b.dataset.control);b.classList.add('held')});const release=e=>{pointers.delete(e.pointerId);releaseCapture(e.pointerId);if(![...pointers.values()].includes(+b.dataset.control))b.classList.remove('held')};for(const n of ['pointerup','pointercancel','lostpointercapture'])b.addEventListener(n,release)}
+for(const input of document.querySelectorAll('.audio-mix'))input.addEventListener('change',()=>enqueue('mix_'+input.dataset.mix+':'+input.value));
+for(const b of document.querySelectorAll('[data-command]'))b.addEventListener('click',()=>{if(simpleUi&&b.dataset.command==='pause'){simpleMenuOpen=false;simpleMenuClosing=true;paintSimpleUi();}enqueue(b.dataset.command)});
+const controlCode=e=>keyBits[e.code]?e.code:(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].includes(e.key)?e.key:null);
+window.addEventListener('keydown',e=>{if(e.target&&['performance','copy-diagnostics','save-diagnostics','ui-style','simple-settings-close','race-menu','fullscreen'].includes(e.target.id))return;if(replayActive){e.preventDefault();if(!e.repeat&&['Escape','Enter','KeyR','KeyT','Space'].includes(e.code))enqueue('replay_return');return}if(e.code==='F5'&&mode==='results'){e.preventDefault();if(!e.repeat)enqueue('replay');return}if(e.target&&(['INPUT','SELECT'].includes(e.target.tagName)||['performance','copy-diagnostics','save-diagnostics','ui-style','simple-settings-close','race-menu','fullscreen'].includes(e.target.id)))return;if(e.code==='F4'&&mode==='training'){e.preventDefault();if(!e.repeat)enqueue('assist_mode');return}if(e.code==='Space'&&assistActive){e.preventDefault();if(!e.repeat&&assistSelecting)enqueue('assist_tap');return}if(e.code==='KeyK'&&['pitout','round_mark','formation'].includes(mode)){e.preventDefault();if(!e.repeat)enqueue('skip');return}if(e.code==='F3'&&mode==='training'){e.preventDefault();enqueue('difficulty');return}const code=controlCode(e);if(code){e.preventDefault();if(!e.repeat)keys.add(code)}});window.addEventListener('keyup',e=>{const code=controlCode(e);if(code)keys.delete(code)});
+function suspend(){clear();if(ready)commands.push('blur')}
+window.addEventListener('orientationchange',suspend);window.addEventListener('blur',suspend);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend()});window.addEventListener('pagehide',suspend);window.addEventListener('contextmenu',e=>e.preventDefault());
+// v20 render-only quality choice. Separate from command/input queues and saves.
+const qualityButton=document.getElementById('quality');
+let renderQuality=(typeof window.matchMedia==='function'&&window.matchMedia('(pointer: coarse)').matches)?'light':'standard';
+try{const saved=localStorage.getItem('suisoRenderQuality');if(['light','standard'].includes(saved))renderQuality=saved}catch(_error){}
+const fpsRequested=new URLSearchParams(location.search).get('fps')==='1';let fpsLight=false;document.body.classList.toggle('fps-mode',fpsRequested);if(fpsRequested)renderQuality='standard';
+function applyRenderQuality(){const light=renderQuality==='light';canvas.width=fpsRequested?(fpsLight?960:1280):(light?896:1280);canvas.height=fpsRequested?(fpsLight?540:720):(light?504:720);qualityButton.textContent=light?'描画 軽量':'描画 標準';qualityButton.setAttribute('aria-pressed',String(light))}
+window.suiso.quality=()=>renderQuality==='light'?0:1;
+qualityButton.addEventListener('click',()=>{renderQuality=renderQuality==='light'?'standard':'light';try{localStorage.setItem('suisoRenderQuality',renderQuality)}catch(_error){}applyRenderQuality()});
+applyRenderQuality();
+
+// Local read-only measurement. Disabled by default; bounded sample storage and
+// no network/storage write. Browser pacing and engine FPS are labeled separately.
+function createFrameSpikeCapture(capacity = 24) {
+  capacity = Math.max(1, Math.min(64, Math.floor(capacity) || 24));
+  const ring = new Array(capacity);
+  let enabled = false, previous = null, context = null, lastCallbackNow = null;
+  let latestConfiguration = null;
+  let contextLossCount = 0, lastContextLossAtMs = null;
+  let written = 0, sampled = 0, over33 = 0, over50 = 0, over100 = 0, worst = null;
+  const number = value => typeof value === 'number' && Number.isFinite(value) ? value : null;
+  let observerCost = { samples: 0, totalMs: 0, maxMs: 0 }, statusCost = { samples: 0, totalMs: 0, maxMs: 0 };
+  function addCost(target, value) { if (enabled && Number.isFinite(value) && value >= 0) { target.samples++; target.totalMs += value; target.maxMs = Math.max(target.maxMs, value); } }
+  function frameWork(value) {
+    if (!value || typeof value !== 'object') return null;
+    const result = { enabled: !!value.enabled, suspended: !!value.suspended, ready: !!value.ready };
+    // Latest scalar progress remains useful before any post-draw interval completes.
+    const progress = value.callbackProgress;
+    if (progress && typeof progress === 'object') {
+      result.callbackProgress = { clock: 'Godot monotonic usec', observedUsec: number(progress.observedUsec), callbacks: {} };
+      for (const key of ['processEntry','processComplete','flushEntry','flushComplete']) {
+        const item = progress.callbacks?.[key] || {};
+        result.callbackProgress.callbacks[key] = { count: number(item.count), lastUsec: number(item.lastUsec) };
+      }
+    }
+    if (!result.ready) return result;
+    for (const key of ['sequence','completedUsec','ageMs','engineProcessFrame','engineFramesDrawn','enginePhysicsFrames','physicsTicksPerSecond','maxPhysicsStepsPerFrame','timeScale','physicsSteps','processFrames','framePostDrawIntervalWallMs','physicsCallbackWindowWallMs','processFrameToPostDrawWallMs']) result[key] = number(value[key]);
+    result.scopeMs = {};
+    for (const key of ['gamePhysics','webBridge','ai','prediction','boatUpdates','contact','effects','camera','rider','renderPresentation','replayAdvance','replayPose','replayAudio','replayWakes']) result.scopeMs[key] = number(value.scopeMs?.[key]);
+    // These two top-level scopes are disjoint. Nested components stay separate.
+    const physics = result.scopeMs.gamePhysics, presentation = result.scopeMs.renderPresentation;
+    result.scriptPhysicsAndPresentationMs = physics !== null && presentation !== null ? physics + presentation : null;
+    const game = value.game || {};
+    result.game = { state: String(game.state || 'unknown').slice(0,32), race_time: number(game.race_time), finish_elapsed: number(game.finish_elapsed), paused: !!game.paused };
+    return result;
+  }
+  function clear() {
+    latestConfiguration = null;
+    ring.fill(null); previous = null; context = null; lastCallbackNow = null; contextLossCount = 0; lastContextLossAtMs = null; written = 0; sampled = 0;
+    over33 = 0; over50 = 0; over100 = 0; worst = null;
+    observerCost = { samples: 0, totalMs: 0, maxMs: 0 }; statusCost = { samples: 0, totalMs: 0, maxMs: 0 };
+  }
+  function start() { clear(); enabled = true; }
+  function stop() { enabled = false; previous = null; }
+  function suspend() { previous = null; context = null; }
+  function update(status, now, quality, width, height) {
+    if (!enabled) return;
+    const s = status || {}, m = s.metrics || {};
+    latestConfiguration = { raceSeed: number(s.race_seed), cpuLevels: Array.isArray(s.cpu_levels) ? s.cpu_levels.slice(0,5).map(row => Array.isArray(row) ? row.slice(0,4).map(number) : []) : [], playerTraining: Array.isArray(s.training) ? s.training.slice(0,3).map(number) : [], pilotTurnLevel: number(s.pilot_turn_level), playerCourse: number(s.player_course), cpuDifficulty: number(s.cpu_difficulty), startAssistEnabled: !!s.start_assist?.enabled, stretchEnabled: !!s.ability?.enabled, startAbilities: Array.isArray(s.special_abilities?.start) ? s.special_abilities.start.slice(0,6).map(Boolean) : [], tsukemaiAbilities: Array.isArray(s.special_abilities?.tsukemai) ? s.special_abilities.tsukemai.slice(0,6).map(Boolean) : [] };
+    // Whitelist scalar technical context. Never retain the game/status object.
+    context = {
+      capturedAtMs: number(now), phase: s.replay?.active ? 'replay' : String(s.state || 'unknown').slice(0, 32),
+      underlyingState: String(s.state || 'unknown').slice(0,32),
+      replay: { active: !!s.replay?.active, elapsedSeconds: number(s.replay?.elapsed), durationSeconds: number(s.replay?.duration), advanceCount: number(s.replay?.advance_count), advanceAgeMs: number(s.replay?.advance_age_ms), lastDeltaSeconds: number(s.replay?.last_advance_delta), paused: !!s.paused, audioFocus: typeof s.replay?.audio_focus === 'boolean' ? s.replay.audio_focus : null, wakeSections: number(s.replay?.wake_sections), wakeCapacity: number(s.replay?.wake_capacity), lightMode: typeof s.replay?.light_mode === 'boolean' ? s.replay.light_mode : null, lastError: String(s.replay?.last_error || '').slice(0,80) },
+      raceTimeSeconds: number(s.time), trackPhase: String(m.track_phase || 'unknown').slice(0, 32), cameraTurnMix: number(m.camera_turn_mix), wakeSegments: number(m.wake_segments), finishElapsedSeconds: number(s.finish_elapsed),
+      quality: quality === 'light' ? 'light' : 'standard', width: number(width), height: number(height),
+      paused: !!s.paused, frameWork: frameWork(m.frame_work),
+      recentEngine: { fps: number(m.fps), processMs: number(m.process_ms), physicsMs: number(m.physics_ms),
+        drawCalls: number(m.draw_calls), objects: number(m.objects), primitives: number(m.primitives) }
+    };
+  }
+  function frame(now, hidden = false, callbackNow = now) {
+    if (!enabled || hidden || !Number.isFinite(now)) { suspend(); return; }
+    if (previous === null || now <= previous) { previous = now; return; }
+    lastCallbackNow = number(callbackNow);
+    const intervalMs = now - previous; previous = now; sampled++;
+    if (intervalMs > 33.4) over33++;
+    if (intervalMs >= 50) over50++;
+    if (intervalMs >= 100) over100++;
+    // Keep long intervals only; normal frames allocate no objects.
+    if (intervalMs < 32) return;
+    const statusAgeMs = context && context.capturedAtMs !== null ? Math.max(0, callbackNow - context.capturedAtMs) : null;
+    const event = {
+      intervalMs, endedAtMs: now, rafTimestampMs: now, callbackAtMs: number(callbackNow),
+      rafCallbackLagMs: number(callbackNow - now),
+      statusRelativeToRafMs: context && context.capturedAtMs !== null ? context.capturedAtMs - now : null,
+      statusAgeMs, replayAdvanceAgeAtCallbackApproxMs: statusAgeMs !== null && context?.replay?.active && context.replay.advanceAgeMs !== null ? context.replay.advanceAgeMs + statusAgeMs : null, completedFrameAgeAtCallbackApproxMs: statusAgeMs !== null && context?.frameWork?.ageMs != null ? context.frameWork.ageMs + statusAgeMs : null,
+      context: context ? { ...context, recentEngine: { ...context.recentEngine } } : null
+    };
+    ring[written % capacity] = event; written++;
+    if (!worst || intervalMs > worst.intervalMs) worst = event;
+  }
+  function summary() { return { longIntervals: written, worstMs: worst ? worst.intervalMs : 0 }; }
+  function report(now = lastCallbackNow) {
+    const latestStatusAgeMs = context && number(now) !== null && context.capturedAtMs !== null ? Math.max(0, now-context.capturedAtMs) : null;
+    const events = [];
+    for (let i = Math.max(0, written - capacity); i < written; i++) events.push(ring[i % capacity]);
+    // Return an isolated manual report. No automatic export or transmission.
+    return JSON.parse(JSON.stringify({ schema: 'suiso-local-frame-spikes-v2', enabled,
+      latestConfiguration, latestContext: context, latestStatusAgeMs, latestReplayAdvanceAgeApproxMs: latestStatusAgeMs !== null && context?.replay?.active && context.replay.advanceAgeMs !== null ? context.replay.advanceAgeMs + latestStatusAgeMs : null, browser: { contextLossCount, lastContextLossAtMs },
+      thresholdMs: 32, capacity, sampledIntervals: sampled, over33_4Ms: over33,
+      over50Ms: over50, over100Ms: over100, recordedEvents: events.length,
+      omittedEarlierEvents: Math.max(0, written - capacity), worst, events,
+      recorderJsCost: { observerCallback: { ...observerCost }, statusHandler: { ...statusCost } },
+      caveat: 'Replay phase is presentation state; underlyingState and frameWork.game may still be results. Advance age is measured before the current physics tick and increases during intentional pause. Status age is bridge freshness, not proof of engine failure. WebGL loss counts are observed only while measurement is enabled and do not identify its cause. rAF timestamps are rendering timeline timestamps, not callback ends; callback lag is not extra GPU time. Context can be captured after the rAF timestamp. statusAgeMs measures only the latest status bridge age. Bridge updates occur every six physics ticks (nominal 10 Hz); engine processMs and physicsMs are roughly one-second maxima, the latter for a single physics step, not all catch-up steps. frameWork is the latest completed post-draw interval with its own IDs/state; ageMs is its age at native bridge snapshot. completedFrameAgeAtCallbackApproxMs adds statusAgeMs but omits native-to-JS transfer delay. Scope measurements are wall time. scriptPhysicsAndPresentationMs is gamePhysics + renderPresentation only; these disjoint scopes exclude webBridge. Other component scopes may overlap or nest and must not be added. Coalesced replayPose/replayAudio/replayWakes are nested within renderPresentation; replayAdvance is nested within gamePhysics. Render preparation is CPU work, not GPU time. Post-physics-to-post-draw is not GPU time and excludes platform tail. JS costs exclude deferred layout/paint and cannot rule out observer effects. No thermal or device-cause inference.' }));
+  }
+  return { start, stop, suspend, update, frame, summary, report, contextLost: now => { if (enabled) { contextLossCount++; lastContextLossAtMs = number(now); } }, recordObserverCost: value => addCost(observerCost, value), recordStatusCost: value => addCost(statusCost, value) };
+}
+
+// Bounded local failure categories. Never retain messages, URLs, stacks or rejection values.
+function createRuntimeDiagnostics(capacity=16) {
+ const limit=Math.max(1,Math.min(32,Math.floor(capacity)||16)),events=[];
+ let enabled=false,total=0,bridgeEntries=0,bridgeCompleted=0,lastEntry=null,lastComplete=null,lastNative=null,exitCode=null;
+ let readEntries=0,readCompleted=0,lastRead=null,lastReadComplete=null,lastReadStage=null,lastCompletedStage=null,statusDecodeEntries=0,statusDecoded=0;
+ const finite=v=>typeof v==='number'&&Number.isFinite(v)?v:null;
+ const age=(now,then)=>finite(now)!==null&&then!==null?Math.max(0,now-then):null;
+ function category(value){
+  let name='',message='';
+  try {name=typeof value?.name==='string'?value.name:'';message=typeof value==='string'?value:typeof value?.message==='string'?value.message:'';}catch(_error){}
+  if(name==='RuntimeError'||/wasm|webassembly|memory access out of bounds/i.test(message))return 'wasm-runtime';
+  if(/out of memory|allocation failed|cannot enlarge memory/i.test(message))return 'memory-allocation';
+  if(/audio|panner|audioparam|audiocontext/i.test(message))return 'audio-runtime';
+  if(/webgl|context lost|shader/i.test(message))return 'graphics-runtime';
+  if(name==='TypeError')return 'javascript-type';
+  if(name==='RangeError')return 'javascript-range';
+  if(name==='ReferenceError')return 'javascript-reference';
+  if(/script error|gdscript/i.test(message))return 'script-runtime';
+  return 'unclassified';
+ }
+ function audioDetail(value){
+  let message='';
+  try{message=typeof value==='string'?value:typeof value?.message==='string'?value.message:'';}catch(_error){}
+  if(!/audio|panner|audioparam|audiocontext/i.test(message))return null;
+  if(/non-finite|not finite|infinite|nan/i.test(message))return 'nonfinite-parameter';
+  if(/start/i.test(message)&&/already|more than once|previously/i.test(message))return 'source-start-repeated';
+  if(/stop/i.test(message)&&/before|not.*start|without.*start/i.test(message))return 'source-stop-before-start';
+  if(/offset|duration/i.test(message)&&/negative|range|greater|exceed/i.test(message))return 'source-time-range';
+  if(/closed/i.test(message))return 'context-closed';
+  if(/disconnect/i.test(message))return 'node-disconnect';
+  return 'other-audio';
+ }
+ function record(source,value,now){
+  if(!enabled)return;
+  const sources=['window-error','unhandled-rejection','engine-stderr','bridge-update','bridge-read','status-decode','engine-exit'];
+  events.push({sequence:++total,source:sources.includes(source)?source:'unknown',category:category(value),audioDetail:audioDetail(value),atMs:finite(now)});
+  if(events.length>limit)events.shift();
+ }
+ function receive(status,update,now,clock=()=>now){
+  if(!enabled)return update(status);
+  bridgeEntries++;lastEntry=finite(now);
+  const r=status?.replay||{},h=status?.engine_heartbeat||{};
+  lastNative={replayActive:!!r.active,advanceCount:finite(r.advance_count),presentCount:finite(r.present_count),pendingPresent:typeof r.pending_present==='boolean'?r.pending_present:null,elapsedSeconds:finite(r.elapsed),physicsFrames:finite(h.physics_frames),processFrames:finite(h.process_frames),framesDrawn:finite(h.frames_drawn)};
+  try{const result=update(status);bridgeCompleted++;lastComplete=finite(clock());return result;}
+  catch(error){record('bridge-update',error,now);throw error;}
+ }
+ function read(stage,callback,now,clock=()=>now){
+  if(!enabled)return callback();
+  const allowed=['view-mask','command','preferences','volume','probe-control'];
+  readEntries++;lastRead=finite(now);lastReadStage=allowed.includes(stage)?stage:'unknown';
+  try{const value=callback();readCompleted++;lastReadComplete=finite(clock());lastCompletedStage=lastReadStage;return value;}
+  catch(error){record('bridge-read',error,now);throw error;}
+ }
+ function decode(text,deliver,now){
+  if(!enabled)return deliver(JSON.parse(text));
+  statusDecodeEntries++;
+  let status;
+  try{status=JSON.parse(text);statusDecoded++;}
+  catch(error){record('status-decode',error,now);throw error;}
+  return deliver(status);
+ }
+ function exited(code,now){if(!enabled)return;exitCode=Number.isInteger(code)?code:null;record('engine-exit',null,now);}
+ function report(now){return {enabled,capacity:limit,totalEvents:total,omittedEvents:Math.max(0,total-limit),events:events.map(e=>({...e})),bridge:{entries:bridgeEntries,completed:bridgeCompleted,lastEntryAgeMs:age(now,lastEntry),lastCompleteAgeMs:age(now,lastComplete),lastNative:lastNative?{...lastNative}:null},inputBridge:{entries:readEntries,completed:readCompleted,lastStage:lastReadStage,lastCompletedStage,lastEntryAgeMs:age(now,lastRead),lastCompleteAgeMs:age(now,lastReadComplete)},statusDecode:{entries:statusDecodeEntries,completed:statusDecoded},engineExitCode:exitCode,caveat:'Entry/completion ages describe status delivery and UI handling, not an independent engine heartbeat. Native counters are cached at entry. Errors are categories only; absence does not exclude an engine/driver fault. Engine stderr can include warnings. A single failure may be observed by multiple callbacks; counts are not unique incidents. This bounded record retains events captured during enabled measurement periods in this page session; disabled periods are not observed. No raw message, URL, stack or rejection object is stored.'};}
+ return {record,receive,read,decode,exited,report,setEnabled:value=>{enabled=!!value}};
+}
+const runtimeDiagnostics=createRuntimeDiagnostics(16);
+window.addEventListener('error',event=>runtimeDiagnostics.record('window-error',event.error||event.message,diagnosticNow()));
+window.addEventListener('unhandledrejection',event=>runtimeDiagnostics.record('unhandled-rejection',event.reason,diagnosticNow()));
+window.suiso.bridgeRead=(stage,callback)=>runtimeDiagnostics.read(stage,callback,diagnosticNow(),diagnosticNow);
+window.suiso.deliverStatus=text=>runtimeDiagnostics.decode(text,status=>window.suiso.receiveStatus(status),diagnosticNow());
+window.suiso.receiveStatus=status=>runtimeDiagnostics.receive(status,s=>window.suiso.update(s),diagnosticNow(),diagnosticNow);
+function runtimeDiagnosticReport(){
+ const report=runtimeDiagnostics.report(diagnosticNow());
+ // Fixed-state counts only; no device names or audio objects in exported data.
+ const audio={available:false,running:0,suspended:0,closed:0,interrupted:0,other:0};
+ try{if(report.enabled){for(const context of appAudioContexts){const state=context.state;if(['running','suspended','closed','interrupted'].includes(state))audio[state]++;else audio.other++;}audio.available=true;}}catch(_error){}
+ report.audioContexts=audio;
+ if(report.enabled)report.observation={visible:!document.hidden,pageHidden:diagnosticPageHidden,uiReady:ready,uiMode:['training','pitout','round_mark','formation','approach','racing','practice','results','fail'].includes(mode)?mode:'unknown',uiReplayActive:replayActive,uiPaused:!!wasPaused,menuOpen:simpleMenuOpen,queuedCommands:Math.min(32,commands.length),measurementEpoch:frameProbeEpoch,interpretation:'UI fields are cached browser state, not a fresh native snapshot. Zero status entries after enabling measurement means no status was observed during enabled periods. Input reads prove only that the native bridge reached those calls; they do not prove render completion.'};return report;
+}
+function engineDiagnosticError(...args){runtimeDiagnostics.record('engine-stderr',args.find(v=>typeof v==='string')||null,diagnosticNow());console.error(...args);}
+function engineDiagnosticExit(code){runtimeDiagnostics.exited(code,diagnosticNow());}
+
+const performanceButton=document.getElementById('performance'), performancePanel=document.getElementById('perf-panel');
+let performanceOn=false, perfFrameRequest=0, perfPrevious=0, perfSamples=[], frameProbeEpoch=0, diagnosticPageHidden=false;
+const frameDiagnostics=createFrameSpikeCapture(24);
+const copyDiagnosticsButton=document.getElementById('copy-diagnostics'),saveDiagnosticsButton=document.getElementById('save-diagnostics'),diagnosticStatus=document.getElementById('diagnostic-status');
+function diagnosticNow(){return typeof performance!=='undefined'&&typeof performance.now==='function'?performance.now():0}
+function updateFrameDiagnosticContext(status){if(performanceOn)frameDiagnostics.update(status,diagnosticNow(),renderQuality,canvas.width,canvas.height)}
+canvas.addEventListener?.('webglcontextlost',()=>frameDiagnostics.contextLost(diagnosticNow()));
+window.suiso.diagnostics=()=>({...frameDiagnostics.report(diagnosticNow()),runtime:runtimeDiagnosticReport()});
+function diagnosticJson(){return JSON.stringify({version:'v0.87',...frameDiagnostics.report(diagnosticNow()),runtime:runtimeDiagnosticReport()},null,2)}
+function diagnosticMessage(text){if(diagnosticStatus){diagnosticStatus.hidden=false;diagnosticStatus.textContent=text}}
+copyDiagnosticsButton?.addEventListener('click',async()=>{try{if(typeof navigator==='undefined'||!navigator.clipboard?.writeText)throw new Error('Clipboard unavailable');await navigator.clipboard.writeText(diagnosticJson());diagnosticMessage('診断をコピーしました。共有は任意です。')}catch(_error){diagnosticMessage('コピーできませんでした。「診断を保存」を使ってください。')}});
+saveDiagnosticsButton?.addEventListener('click',()=>{let url;try{url=URL.createObjectURL(new Blob([diagnosticJson()],{type:'application/json'}));const a=document.createElement('a');a.href=url;a.download='SUI-SO_v0.87_frame_diagnostics.json';document.body.appendChild(a);a.click();a.remove();diagnosticMessage('診断ファイルの保存を開始しました。共有は任意です。');setTimeout(()=>URL.revokeObjectURL(url),1000)}catch(_error){if(url)URL.revokeObjectURL(url);diagnosticMessage('保存できませんでした。「診断をコピー」を使ってください。')}});
+
+window.suiso.performance=()=>performanceOn?1:0;
+window.suiso.probeControl=()=>frameProbeEpoch*4+(performanceOn?1:0)+(performanceOn&&!document.hidden&&!diagnosticPageHidden?2:0);
+function resetPerformanceSamples(){perfPrevious=0;perfSamples=[];frameProbeEpoch++}
+function collectPerformanceFrame(time){const diagnosticStart=diagnosticNow();perfFrameRequest=0;if(!performanceOn||document.hidden||diagnosticPageHidden){resetPerformanceSamples();return}frameDiagnostics.frame(time,false,diagnosticNow());if(perfPrevious>0&&time>perfPrevious){perfSamples.push(time-perfPrevious);if(perfSamples.length>120)perfSamples.shift()}perfPrevious=time;if(typeof requestAnimationFrame==='function')perfFrameRequest=requestAnimationFrame(collectPerformanceFrame);frameDiagnostics.recordObserverCost(diagnosticNow()-diagnosticStart)}
+function schedulePerformance(){if(performanceOn&&!document.hidden&&!diagnosticPageHidden&&!perfFrameRequest&&typeof requestAnimationFrame==='function')perfFrameRequest=requestAnimationFrame(collectPerformanceFrame)}
+function renderPerformance(metrics){if(!performanceOn)return;const m=metrics||{};const fps=Number(m.fps)||0;const sorted=perfSamples.slice().sort((a,b)=>a-b);const p95=sorted.length>=20?sorted[Math.floor((sorted.length-1)*.95)].toFixed(1):'--';const p99=sorted.length>=20?sorted[Math.floor((sorted.length-1)*.99)].toFixed(1):'--';const peak=sorted.length?sorted[sorted.length-1].toFixed(1):'--';const spikes=frameDiagnostics.summary();const fw=m.frame_work||{};const workLine=fw.ready?`\n直近描画: 物理 ${fw.physicsSteps}回 / 主スクリプト ${(Number(fw.scopeMs?.gamePhysics||0)+Number(fw.scopeMs?.renderPresentation||0)).toFixed(1)} ms\n  物理 ${Number(fw.scopeMs?.gamePhysics||0).toFixed(1)} / 描画準備 ${Number(fw.scopeMs?.renderPresentation||0).toFixed(1)} ms`:'';performancePanel.textContent=`描画 ${fps.toFixed(0)} FPS / ${fps>0?(1000/fps).toFixed(1):'--'} ms\nブラウザ間隔 p95 ${p95} / p99 ${p99} / 最大 ${peak} ms\n${canvas.width}×${canvas.height} | draw ${Number(m.draw_calls||0).toFixed(0)}\n直近1秒 最大処理 ${Number(m.process_ms||0).toFixed(2)} / 単物理 ${Number(m.physics_ms||0).toFixed(2)} ms\n32ms以上 ${spikes.longIntervals}回 / 記録の最長 ${spikes.worstMs.toFixed(1)} ms${workLine}`}
+performanceButton.addEventListener('click',()=>{performanceOn=!performanceOn;runtimeDiagnostics.setEnabled(performanceOn);if(performanceOn){frameDiagnostics.start();if(copyDiagnosticsButton)copyDiagnosticsButton.hidden=false;if(saveDiagnosticsButton)saveDiagnosticsButton.hidden=false;if(diagnosticStatus)diagnosticStatus.hidden=true}else frameDiagnostics.stop();performanceButton.textContent=performanceOn?'計測 ON':'計測 OFF';performanceButton.setAttribute('aria-pressed',String(performanceOn));performancePanel.hidden=!performanceOn;resetPerformanceSamples();if(!performanceOn&&perfFrameRequest&&typeof cancelAnimationFrame==='function'){cancelAnimationFrame(perfFrameRequest);perfFrameRequest=0}if(performanceOn){performancePanel.textContent='エンジンの計測値を待っています';schedulePerformance()}});
+document.addEventListener('visibilitychange',()=>{frameDiagnostics.suspend();resetPerformanceSamples();schedulePerformance()});
+window.addEventListener('pagehide',()=>{diagnosticPageHidden=true;frameDiagnostics.suspend();resetPerformanceSamples();if(perfFrameRequest&&typeof cancelAnimationFrame==='function'){cancelAnimationFrame(perfFrameRequest);perfFrameRequest=0}});
+window.addEventListener('pageshow',()=>{diagnosticPageHidden=false;frameDiagnostics.suspend();resetPerformanceSamples();schedulePerformance()});
+qualityButton.addEventListener('click',()=>{frameDiagnostics.suspend();resetPerformanceSamples()});
+
+// Audio output preference is independent of controls, training and RNG.
+const volumeSlider=document.getElementById('volume');
+let audioVolume=0.35;
+try{const saved=localStorage.getItem('suisoAudioVolume');if(saved!==null&&saved!==undefined&&Number.isFinite(Number(saved)))audioVolume=Math.max(0,Math.min(1,Number(saved)))}catch(_error){}
+volumeSlider.value=String(Math.round(audioVolume*100));
+window.suiso.volume=()=>audioVolume;
+volumeSlider.addEventListener('input',()=>{audioVolume=Math.max(0,Math.min(1,(Number(volumeSlider.value)||0)/100));try{localStorage.setItem('suisoAudioVolume',String(audioVolume))}catch(_error){}});
+// Godot's official Web Audio driver resumes on trusted input. Loading begins
+// only on the explicit launch gesture, and our training screen never plays audio.
+// The engine creates its AudioContext after asynchronous loading. Track that
+// app-owned context without modifying engine bytes, then resume only inside a
+// genuine browser gesture (the race/practice button also counts on phones).
+const appAudioContexts=new Set();
+const NativeAudioContext=window.AudioContext||window.webkitAudioContext;
+if(NativeAudioContext){
+ function TrackedAudioContext(...args){const context=new NativeAudioContext(...args);appAudioContexts.add(context);return context}
+ TrackedAudioContext.prototype=NativeAudioContext.prototype;
+ Object.setPrototypeOf(TrackedAudioContext,NativeAudioContext);
+ if(window.AudioContext)window.AudioContext=TrackedAudioContext;else window.webkitAudioContext=TrackedAudioContext;
+}
+function unlockAppAudio(event){
+ if(!event.isTrusted)return;
+ for(const context of appAudioContexts){if(context.state==='closed'){appAudioContexts.delete(context);continue}if(context.state==='suspended')Promise.resolve(context.resume()).catch(()=>{})}
+}
+document.addEventListener('pointerdown',unlockAppAudio,{capture:true,passive:true});
+document.addEventListener('keydown',unlockAppAudio,{capture:true,passive:true});
+// Serve the engine below the host's per-file cap. Streaming gzip on modern browsers,
+// byte-identical chunk fallback where DecompressionStream is unavailable.
+const originalFetch=window.fetch.bind(window);
+window.fetch=async function(input,init){
+ const url=new URL(typeof input==='string'?input:(input instanceof URL?input.href:input.url),location.href);
+ if(url.origin===location.origin&&url.pathname.endsWith('/index.wasm')){
+  if(typeof DecompressionStream!=='undefined'&&new URLSearchParams(location.search).get('engine')!=='chunks'){
+   const response=await originalFetch(new URL('index.wasm.gz',url),init);
+   if(!response.ok)throw new Error('Engine download failed: '+response.status);
+   return new Response(response.body.pipeThrough(new DecompressionStream('gzip')),{headers:{'Content-Type':'application/wasm'}});
+  }
+  const chunks=await Promise.all([0,1,2,3].map(async i=>{const response=await originalFetch(new URL('index.wasm.part'+i,url),init);if(!response.ok)throw new Error('Engine download failed');return response.arrayBuffer()}));
+  return new Response(new Blob(chunks,{type:'application/wasm'}),{headers:{'Content-Type':'application/wasm'}});
+ }
+ return originalFetch(input,init);
+};
+const config={"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":28131396,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const engine=new Engine(config);
+// The canvas element itself matches the16:9 game image. Letterbox space belongs
+// to #view, so Godot receives pointer coordinates in the visible image rectangle.
+const gameView=document.getElementById('view');
+function fitCanvas(){const fit=fittedCanvasSize(gameView.clientWidth,gameView.clientHeight);canvas.style.width=fit.width+'px';canvas.style.height=fit.height+'px'}
+window.addEventListener('resize',fitCanvas);
+if(typeof ResizeObserver!=='undefined')new ResizeObserver(fitCanvas).observe(gameView);
+fitCanvas();
+const launch=document.getElementById('launch'),loadtext=document.getElementById('loadtext');
+launch.onclick=async()=>{launch.disabled=true;launch.textContent='読み込み中…';try{const missing=Engine.getMissingFeatures({threads:false});if(missing.length)throw new Error('WebGL 2 / WebAssembly 対応ブラウザが必要です: '+missing.join(', '));await engine.startGame({canvas,canvasResizePolicy:0,onPrintError:engineDiagnosticError,onExit:engineDiagnosticExit,onProgress:(current,total)=>{loadtext.textContent=total?`読み込み中 ${Math.round(current/total*100)}%`:'ゲームを起動しています…'}});document.getElementById('loading').hidden=true;fitCanvas();canvas.focus();}catch(error){loadtext.textContent='起動できませんでした。対応ブラウザで再読み込みしてください。 '+error.message;launch.textContent='再読み込み';launch.disabled=false;launch.onclick=()=>location.reload()}};
+</script>
+<script>
+// V72_LAYOUT_START: the native Fullscreen API runs in the original click task.
+(function(){
+ const root=document.body,button=document.getElementById('fullscreen'),notice=document.getElementById('fullscreen-status'),menu=document.getElementById('race-menu');
+ let pending=false,lastState='',noticeTimer;
+ function showNotice(text){notice.textContent=text;clearTimeout(noticeTimer);if(text)noticeTimer=setTimeout(()=>{notice.textContent=''},6500)}
+ function syncFullscreen(){const active=!!document.fullscreenElement;button.textContent=active?'全画面を終了':'全画面';button.setAttribute('aria-pressed',String(active));button.disabled=pending;}
+ button.addEventListener('click',function(){
+  if(pending)return;
+  const exiting=!!document.fullscreenElement;
+  if(!exiting&&(typeof root.requestFullscreen!=='function'||document.fullscreenEnabled===false)){showNotice('この表示では全画面にできません。ゲームをブラウザで直接開いてください。');syncFullscreen();return;}
+  let action;
+  try{action=exiting?document.exitFullscreen():root.requestFullscreen({navigationUI:'hide'});}catch(error){showNotice('全画面に切り替えられませんでした。ブラウザの許可と表示方法を確認してください。');syncFullscreen();return;}
+  pending=true;syncFullscreen();
+  Promise.resolve(action).then(()=>{showNotice('');},()=>{showNotice('全画面が許可されませんでした。ゲームを直接開いて、もう一度お試しください。');}).finally(()=>{pending=false;syncFullscreen();fitCanvas();});
+ });
+ document.addEventListener('fullscreenchange',()=>{syncFullscreen();clear();fitCanvas();});
+ document.addEventListener('fullscreenerror',()=>{pending=false;syncFullscreen();showNotice('全画面に切り替えられませんでした。');});
+ menu.addEventListener('click',()=>{if(window.suiso.simpleUi?.())window.suiso.setSimpleMenu(!window.suiso.simpleMenu());else document.getElementById('pause').click();});
+ document.getElementById('race-skip').addEventListener('click',()=>document.getElementById('skip').click());
+ const originalUpdate=window.suiso.update;
+ window.suiso.update=function(s){originalUpdate(s);root.classList.toggle('replay-view',!!s.replay?.active);const race=['pitout','round_mark','formation','approach','racing','practice'].includes(s.state);root.classList.toggle('race-view',race);root.classList.toggle('menu-open',race&&(window.suiso.simpleUi?.()?window.suiso.simpleMenu():(window.suiso.simpleMenu?.()||!!s.paused)));menu.hidden=!race;document.getElementById('race-skip').hidden=!['pitout','round_mark','formation'].includes(s.state)||!!s.paused;menu.textContent=window.suiso.simpleUi?.()?'Ⅱ':(s.paused?'再開':'Ⅱ');menu.setAttribute('aria-label',window.suiso.simpleUi?.()?(window.suiso.simpleMenu()?'メニューを閉じる':'一時停止・メニュー'):(s.paused?'レースを再開':'一時停止・メニュー'));const layoutState=s.state+':'+!!s.replay?.active;if(lastState!==layoutState){lastState=layoutState;fitCanvas();}};
+ syncFullscreen();
+})();
+// V72_LAYOUT_END
+</script>
+<script>
+// Demo transport and UI are opt-in; ordinary mode keeps its existing controls.
+(()=>{
+ let activity=0;
+ window.suiso.activitySerial=()=>activity;
+ for(const name of ['pointerdown','keydown'])window.addEventListener(name,()=>activity++,true);
+ const original=window.suiso.update;
+ window.suiso.update=function(s){
+  original(s);
+  const training=!!s.demo&&s.state==='training';
+  document.body.classList.toggle('demo-training',training);
+  const panel=document.getElementById('demo-screen');panel.hidden=!training;
+  if(training){
+   panel.querySelectorAll('[data-command^=course]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.command==='course'+s.player_course)));
+   panel.querySelectorAll('[data-command^=preset]').forEach(b=>b.setAttribute('aria-pressed',String(b.textContent===s.preset)));
+  }
+ };
+ window.addEventListener('keydown',event=>{
+  if(!document.body.classList.contains('demo-training'))return;
+  const commands={Digit1:'course1',Digit2:'course2',Digit3:'course3',Digit4:'course4',Digit5:'course5',Digit6:'course6',KeyZ:'preset0',KeyX:'preset1',KeyC:'preset2',Enter:'start'};
+  if(commands[event.code]&&!event.repeat)enqueue(commands[event.code]);
+  event.preventDefault();event.stopImmediatePropagation();
+ },true);
+})();
+</script>
+<script>
+(()=>{
+ let report='';
+ const panel=document.getElementById('fps-meter'),live=document.getElementById('fps-live'),toggle=document.getElementById('fps-light'),copy=document.getElementById('fps-copy'),notice=document.getElementById('fps-copy-status');
+ const original=window.suiso.update;
+ window.suiso.update=function(s){
+  original(s);const f=s.fps_meter;panel.hidden=!f?.enabled;if(!f?.enabled)return;
+  live.textContent=`FPS ${Number(f.fps).toFixed(0)} / ${f.phase}\n${f.lightweight?'しぶき半分・影OFF・解像度75%':'通常描画 1280×720'}`;
+  toggle.textContent='軽量化 '+(f.lightweight?'ON':'OFF');toggle.setAttribute('aria-pressed',String(f.lightweight));
+  if(fpsLight!==f.lightweight){fpsLight=f.lightweight;applyRenderQuality();}
+  copy.hidden=!f.results;report=f.markdown||'';
+  copy.dataset.report=report;
+  if(!f.results)notice.textContent='';
+ };
+ copy.addEventListener('click',async()=>{
+  try{
+   const area=document.createElement('textarea');area.value=report;area.style.cssText='position:fixed;left:-9999px';document.body.appendChild(area);area.select();
+   const copied=document.execCommand('copy');area.remove();
+   if(!copied)await navigator.clipboard.writeText(report);
+   notice.textContent='コピーしました';
+  }
+  catch(error){notice.textContent='コピーできませんでした。HTTPSで開いて再度お試しください。';}
+ });
+})();
+</script>
+<style>body.demo-mode #toolbar[data-state="results"] #retry{min-width:240px;min-height:72px;background:#ffe3a2;color:#102b3d;font-size:24px;font-weight:bold}#presentation-options{display:none}body.menu-open #presentation-options{display:flex;flex-wrap:wrap;gap:6px}</style>
+<script>
+(()=>{const prior=window.suiso.update;window.suiso.update=s=>{prior(s);document.body.classList.toggle('demo-mode',!!s.demo);for(const input of document.querySelectorAll('.audio-mix')){if(document.activeElement!==input)input.value=s.audio_mix?.[input.dataset.mix]??1;}document.getElementById('retry').textContent=s.demo?'もう一度':'リトライ';const labels={start:'ST演出',turn:'1マーク演出',finish:'ゴール演出',sound:'演出音'};for(const key of Object.keys(labels)){const b=document.querySelector('[data-command="fx_'+key+'"]');b.textContent=labels[key]+' '+(s.presentation?.[key]?'ON':'OFF');b.setAttribute('aria-pressed',String(!!s.presentation?.[key]));}}})();
+</script></body></html>
