@@ -499,7 +499,7 @@ window.fetch=async function(input,init){
  }
  return originalFetch(input,init);
 };
-const config={"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":28162404,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const config={"args":[],"canvasResizePolicy":0,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":28162468,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 const engine=new Engine(config);
 // The canvas element itself matches the16:9 game image. Letterbox space belongs
 // to #view, so Godot receives pointer coordinates in the visible image rectangle.
@@ -600,5 +600,20 @@ function createAttractDismiss(isActive,dismiss){return e=>{if(!isActive())return
 <style>body.demo-mode #toolbar[data-state="results"] #retry{min-width:240px;min-height:72px;background:#ffe3a2;color:#102b3d;font-size:24px;font-weight:bold}#presentation-options{display:none}body.menu-open #presentation-options{display:flex;flex-wrap:wrap;gap:6px}</style>
 <script>
 (()=>{const prior=window.suiso.update;window.suiso.update=s=>{prior(s);document.body.classList.toggle('demo-mode',!!s.demo);for(const input of document.querySelectorAll('.audio-mix')){if(document.activeElement!==input)input.value=s.audio_mix?.[input.dataset.mix]??1;}document.getElementById('retry').textContent=s.demo?'もう一度':'リトライ';const labels={start:'ST演出',turn:'1マーク演出',finish:'ゴール演出',sound:'演出音'};for(const key of Object.keys(labels)){const b=document.querySelector('[data-command="fx_'+key+'"]');b.textContent=labels[key]+' '+(s.presentation?.[key]?'ON':'OFF');b.setAttribute('aria-pressed',String(!!s.presentation?.[key]));}}})();
+</script>
+<style id="career-layout">
+body.career-view header,body.career-view #toolbar,body.career-view #drive,body.career-view #diagnostic-controls,body.career-view #hint,body.career-view #rotate,body.career-view #race-actions,body.career-view #tutorial-actions,body.career-view #demo-screen{display:none!important}
+body.career-view #view{position:absolute!important;inset:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)!important;height:auto!important;min-height:0!important}
+</style>
+<script>
+// Canvas career screens share the engine while the existing HTML race controls remain available.
+window.suiso.setCareerMode=(enabled,screen='success')=>{
+ clear();commands.length=0;assistTapPending=false;
+ document.body.classList.toggle('career-view',!!enabled);
+ document.body.dataset.careerScreen=enabled?screen:'race';
+ if(enabled){active=false;for(const dialog of document.querySelectorAll('dialog[open]'))dialog.close();}
+ else active=!wasPaused&&['practice','racing','approach'].includes(mode);
+ fitCanvas();
+};
 </script></body></html>
 
