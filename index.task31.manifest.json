@@ -1,0 +1,58 @@
+{
+  "index.task31.apk": {
+    "bytes": 72467601,
+    "sha256": "6e6b7d5f87624611f59cdbeebe63220b9e783746db2a3c567e1874f1e0cec007"
+  },
+  "index.task31.apple-touch-icon.png": {
+    "bytes": 11952,
+    "sha256": "9b374ecbc8558f480421e646f38aaa8a69d5b1d65ff7b48d0735da214c46773a"
+  },
+  "index.task31.audio.position.worklet.js": {
+    "bytes": 2973,
+    "sha256": "be33985bc7160d6bf9646f259cd86b259cd67b02ccb297ee5c44f8ac84327bc8"
+  },
+  "index.task31.audio.worklet.js": {
+    "bytes": 7298,
+    "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
+  },
+  "index.task31.html": {
+    "bytes": 113344,
+    "sha256": "038a6557e654e158aebd13d79e299d291ab64b2f6500e347909bd4743f948b6e"
+  },
+  "index.task31.icon.png": {
+    "bytes": 5702,
+    "sha256": "08808dd5397e9a502cb3624944151f87a9705b5b66b5c365c5ca4c6ab51525f5"
+  },
+  "index.task31.js": {
+    "bytes": 317254,
+    "sha256": "4ceeb3a7e2448901d1f3a457c0ea93de5dc9be1107af1f0143d048e3ac334e93"
+  },
+  "index.task31.pck": {
+    "bytes": 30881144,
+    "sha256": "869dec04cb3d98bf18ad86f221717084ce485114301918ceb4f2fd30e65ea9d2"
+  },
+  "index.task31.png": {
+    "bytes": 21443,
+    "sha256": "3cb4495c0b98dfbe4b663cbf2b6836473572339beb66d902367893162a70be0e"
+  },
+  "index.task31.wasm.gz": {
+    "bytes": 9382282,
+    "sha256": "b86a73db5739d710bfbaaad9c0877d8d9f61069723bb16e8252371da8a8c6a01"
+  },
+  "index.task31.wasm.part0": {
+    "bytes": 9425167,
+    "sha256": "438063a43bdd69d5c477c350fb3029748223fdd2e7d7ccf3baa1e3d5593ae648"
+  },
+  "index.task31.wasm.part1": {
+    "bytes": 9425167,
+    "sha256": "636dc6b55616643d25d5d9d40d1bb10275178639d901a28b183a4c678036992b"
+  },
+  "index.task31.wasm.part2": {
+    "bytes": 9425167,
+    "sha256": "57d18f41370bfa315e3ff06d44de247fa2711dc41189768c90414fa3368dbc9b"
+  },
+  "index.task31.wasm.part3": {
+    "bytes": 9425165,
+    "sha256": "d4cbd21a2833f8824e96b8f8a07ec7a21b9356f5766a09c7a96df4ad5b43f94b"
+  }
+}
