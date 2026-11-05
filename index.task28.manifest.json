@@ -1,0 +1,22 @@
+{
+  "before": {
+    "key": "before",
+    "label": "変更前 v62",
+    "pckSha256": "f664f6986e946adf7c9037669d312b75d872970691e5ba1b1b283931b22e7a0a",
+    "runtimeSha256": "8d32db3cd663e2b19e66565a9b688e6b75663c06f12592e01b9a0f38687ce5ea",
+    "engineSha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0",
+    "href": "index.task28.before.html?demo=1&fps=1",
+    "returnHref": "index.task28.html",
+    "scenario": "demo=1; autoplay; defaults seed=20261013, course=1, training=[1,1,1]; normal 1280x720"
+  },
+  "after": {
+    "key": "after",
+    "label": "変更後 v70",
+    "pckSha256": "ef53a72009d809601df94395e203ef8c39145e27bf35e1bca46a0df8c3652681",
+    "runtimeSha256": "8d32db3cd663e2b19e66565a9b688e6b75663c06f12592e01b9a0f38687ce5ea",
+    "engineSha256": "fc74679e3b97f76878947fcd4fbe1268cbfa6188182a2e33bbc3f5dc9bfa57d0",
+    "href": "index.task28.after.html?demo=1&fps=1",
+    "returnHref": "index.task28.html",
+    "scenario": "demo=1; autoplay; defaults seed=20261013, course=1, training=[1,1,1]; normal 1280x720"
+  }
+}
